@@ -5,28 +5,27 @@ body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green))
 
 .screen { width: 95%; max-width: 450px; margin: 15px auto; padding: 25px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 30px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
 
-/* HOME INPUT & LOG UI */
+/* HOME UI */
 .name-input-field { width: 100%; padding: 20px; border-radius: 20px; border: none; font-size: 1.8rem; font-weight: 900; text-align: center; color: var(--teal); background: white; margin-top: 10px; }
 .input-group label { display: block; font-weight: 900; opacity: 0.7; letter-spacing: 2px; font-size: 0.8rem; margin-top: 10px; }
 .home-spacer { height: 40px; } 
 
-/* FIXED: Counter Row Layout */
 .host-card { background: rgba(255,255,255,0.05); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; width: 100%; }
 .counter-row { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 25px; width: 100%; }
-.counter-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 2rem; background: white; color: var(--teal); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.counter-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 2rem; background: white; color: var(--teal); font-weight: bold; cursor: pointer; }
 .count-display { font-size: 3.5rem; font-weight: 900; min-width: 80px; text-align: center; }
 
-/* CELEBRATION OVERLAY */
+/* ACTIVE GAME UI */
+.active-game-banner { display: flex; gap: 10px; width: 100%; align-items: stretch; }
+.resume-btn { background: var(--gold) !important; color: black !important; flex: 1; }
+.delete-icon-btn { background: rgba(255, 68, 68, 0.2); border: 2px solid #ff4444; border-radius: 20px; width: 65px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+/* CELEBRATION */
 .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-.celebration-content { background: white; color: var(--teal); padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popup-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-width: 80%; }
+.celebration-content { background: white; color: var(--teal); padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popup-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes popup-bounce { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-/* REST OF CSS REMAINS THE SAME */
-.history-list { overflow-y: auto; max-height: 70vh; padding: 10px 5px; }
-.history-block { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 18px; margin-bottom: 15px; text-align: left; }
-.round-label { display: block; color: var(--gold); font-weight: 900; font-size: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 8px; padding-bottom: 4px; }
-.history-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 1rem; }
-.section-spacer { height: 35px; } 
+/* GRIDS & CARDS */
 .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .card-grid button:last-child { grid-column: 2; }
 .card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 15px 0; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
@@ -35,17 +34,21 @@ body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green))
 .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 15px; border-radius: 12px; font-weight: bold; }
 .mod-btn-active { background: var(--orange) !important; border-color: white !important; }
+
+/* TOTALS */
 .totals-row { display: flex; gap: 10px; }
 .total-box { flex: 1; border-radius: 18px; border: 1px solid rgba(255,255,255,0.2); padding: 12px; text-align: center; background: rgba(0,0,0,0.1); }
 .total-box.grand { background: white; color: var(--teal); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 .total-box div { font-size: 2rem; font-weight: 900; }
+
+.big-btn { width: 100%; padding: 22px; border-radius: 20px; border: none; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; cursor: pointer; }
+.submit-btn { background: var(--orange); color: white; }
+.threshold-reached { border: 2px solid var(--gold) !important; background: rgba(255, 215, 0, 0.15) !important; animation: pulse-gold 2s infinite; }
+@keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
+
+/* REST OF NAV & LISTS */
 .top-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; margin-bottom: 10px; }
 .nav-code { font-weight: 900; font-size: 0.85rem; letter-spacing: 1px; color: white; text-align: center; flex: 1; }
 .nav-btn-themed { background: rgba(255,255,255,0.15); border: 1px solid white; color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; min-width: 70px; }
-.big-btn { width: 100%; padding: 22px; border-radius: 20px; border: none; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; }
-.submit-btn { background: var(--orange); color: white; }
-.next-btn { background: var(--teal) !important; color: white; border: 2px solid white !important; }
 .p-row { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 8px; border-radius: 12px; align-items: center; }
-.threshold-reached { border: 2px solid var(--gold) !important; background: rgba(255, 215, 0, 0.15) !important; animation: pulse-gold 2s infinite; }
-@keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
-.banner { background: var(--gold); color: black; padding: 10px; border-radius: 10px; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px; text-align: center; }
+.banner { background: var(--gold); color: black; padding: 10px; border-radius: 10px; font-weight: 900; font-size: 0.8rem; text-align: center; }

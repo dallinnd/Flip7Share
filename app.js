@@ -98,6 +98,8 @@ window.toggleMod = (id, val) => {
 window.triggerBust = () => { 
     busted = true; usedCards = []; bonuses = []; mult = 1; 
     document.getElementById('calc-display').classList.add('shake');
+  // Inside triggerBust
+   if ("vibrate" in navigator) navigator.vibrate([100, 50, 100]); // Double buzz for a bust
     setTimeout(() => document.getElementById('calc-display').classList.remove('shake'), 400);
     updateUI(); 
 };

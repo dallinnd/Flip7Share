@@ -21,9 +21,10 @@
 
     <div id="home-screen" class="screen">
         <h1>Flip 7 Share</h1>
+        
         <div class="input-group">
             <label>PLAYER NAME</label>
-            <input type="text" id="userNameInput" placeholder="Enter name..." class="name-input-field">
+            <input type="text" id="userNameInput" placeholder="TYPE NAME HERE" class="name-input-field">
         </div>
         
         <div class="home-spacer"></div> 
@@ -42,6 +43,14 @@
             <button class="big-btn join-btn" onclick="window.openJoinPopup()">JOIN EXISTING</button>
             <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="window.resumeGame()">RESUME GAME</button>
         </div>
+    </div>
+
+    <div id="lobby-screen" class="screen" style="display:none;">
+        <h2 id="roomDisplayLobby">Game: ------</h2>
+        <div id="lobby-status" class="lobby-count">Joined: 0 / 0</div>
+        <div id="player-list" class="player-list"></div>
+        <p class="pulse">Waiting for players...</p>
+        <button class="nav-btn-themed" onclick="window.leaveGame()">Leave Lobby</button>
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">

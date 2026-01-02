@@ -14,12 +14,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// --- State ---
 let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f7_name') || "";
-let usedCards = [], bonuses = [], mult = 1, busted = false;
-let targetPlayerCount = 4;
+let usedCards = [], bonuses = [], mult = 1, busted = false, targetPlayerCount = 4;
 
-// --- Keyboard & Init ---
+// Init
 const nInput = document.getElementById('userNameInput');
 if(nInput) {
     nInput.value = myName;
@@ -38,25 +36,19 @@ window.adjustCount = (val) => {
     document.getElementById('playerCountDisplay').innerText = targetPlayerCount;
 };
 
-// --- Hosting & Joining ---
-window.hostGameFromUI = () => {
-    if(!myName || myName.trim() === "") return alert("Enter your name first!");
-    hostGame(targetPlayerCount);
-};
+// Networking
+window.hostGameFromUI = () => { if(!myName) return alert("Enter name!"); hostGame(targetPlayerCount); };
 
 async function hostGame(target) {
     gameCode = Math.floor(100000 + Math.random() * 900000);
     localStorage.setItem('f7_code', gameCode);
-    await set(ref(db, `games/${gameCode}`), { 
-        host: myName, targetCount: target, status: "waiting", roundNum: 1 
-    });
+    await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: target, status: "waiting", roundNum: 1 });
     joinGame(gameCode);
 }
 
 window.openJoinPopup = () => {
-    if(!myName) return alert("Enter your name first!");
     let c = prompt("6-digit code:");
-    if(c) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
+    if(c && myName) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
 };
 
 window.resumeGame = () => joinGame(gameCode);
@@ -68,28 +60,20 @@ async function joinGame(code) {
     onValue(ref(db, `games/${code}`), syncApp);
 }
 
-// --- Card Grid Logic (7-Card Constraint) ---
+// Logic
 const grid = document.getElementById('cardGrid');
 if (grid && grid.children.length === 0) {
     for(let i=1; i<=12; i++){
         let btn = document.createElement('button'); btn.id = 'c-'+i; btn.innerText = i;
         btn.onclick = () => {
-            if(usedCards.includes(i)) {
-                usedCards = usedCards.filter(v => v !== i);
-            } else if (usedCards.length < 7) {
-                usedCards.push(i);
-            } else {
-                // Shake if user tries to add 8th card
-                document.getElementById('calc-display').classList.add('shake');
-                setTimeout(() => document.getElementById('calc-display').classList.remove('shake'), 400);
-            }
+            if(usedCards.includes(i)) usedCards = usedCards.filter(v => v !== i);
+            else if (usedCards.length < 7) usedCards.push(i);
             updateUI();
         };
         grid.appendChild(btn);
     }
 }
 
-// --- Independent Modifiers ---
 window.toggleMod = (id, val) => {
     if(id === 'm2') mult = (mult === 2) ? 1 : 2;
     else bonuses.includes(val) ? bonuses = bonuses.filter(b=>b!==val) : bonuses.push(val);
@@ -98,42 +82,31 @@ window.toggleMod = (id, val) => {
 
 window.triggerBust = () => { 
     busted = true; usedCards = []; bonuses = []; mult = 1; 
-    const disp = document.getElementById('calc-display');
-    disp.classList.add('shake'); setTimeout(() => disp.classList.remove('shake'), 400);
+    document.getElementById('calc-display').classList.add('shake');
+    setTimeout(() => document.getElementById('calc-display').classList.remove('shake'), 400);
     updateUI(); 
 };
 
 function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
-    let totalBonus = bonuses.reduce((a, b) => a + b, 0);
-    const isFlip7 = (usedCards.length === 7);
-    const flip7Score = isFlip7 ? 15 : 0;
-
-    let total = busted ? 0 : (sum * mult) + totalBonus + flip7Score;
-    
-    document.getElementById('flip7-banner').style.display = (isFlip7 && !busted) ? 'block' : 'none';
+    let totalB = bonuses.reduce((a, b) => a + b, 0);
+    const hasF7 = (usedCards.length === 7);
+    let total = busted ? 0 : (sum * mult) + totalB + (hasF7 ? 15 : 0);
+    document.getElementById('flip7-banner').style.display = (hasF7 && !busted) ? 'block' : 'none';
     const d = document.getElementById('calc-display');
     d.innerText = busted ? "BUST!" : total;
-    d.style.color = busted ? "#ff4444" : (isFlip7 ? "var(--gold)" : "white");
-
-    // Grid Dimming
+    d.style.color = busted ? "#ff4444" : (hasF7 ? "var(--gold)" : "white");
     for(let i=1; i<=12; i++) {
         const b = document.getElementById('c-'+i);
-        const sel = usedCards.includes(i);
         if(b) {
-            b.style.background = sel ? "var(--teal)" : "rgba(255,255,255,0.2)";
-            b.style.opacity = (isFlip7 && !sel) ? "0.3" : "1";
+            b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
+            b.style.opacity = (hasF7 && !usedCards.includes(i)) ? "0.3" : "1";
         }
     }
-    
-    // Mods (Orange)
     document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
-    [2, 4, 6, 8, 10].forEach(v => {
-        document.getElementById('btn-p' + v).className = bonuses.includes(v) ? "mod-btn-active" : "";
-    });
+    [2, 4, 6, 8, 10].forEach(v => { document.getElementById('btn-p' + v).className = bonuses.includes(v) ? "mod-btn-active" : ""; });
 }
 
-// --- Sync & Multi-player Logic ---
 function syncApp(snap) {
     const data = snap.val(); if(!data) { localStorage.removeItem('f7_code'); location.reload(); return; }
     const players = Object.values(data.players || {});
@@ -151,11 +124,27 @@ function syncApp(snap) {
     showScreen('game-screen');
     document.getElementById('roomCodeDisplay').innerText = `GAME: ${gameCode} | R${data.roundNum}`;
 
+    // Winner Calculation Logic
+    const sortedPlayers = players.map(p => ({ ...p, total: (p.history || []).reduce((a,b)=>a+b, 0) })).sort((a,b)=>b.total-a.total);
+    const someoneOverThreshold = sortedPlayers.some(p => p.total >= 200);
+    const everyoneDone = players.every(p => p.submitted);
+    
+    const banner = document.getElementById('winner-banner');
+    if (someoneOverThreshold && everyoneDone) {
+        banner.innerHTML = `<div class="winner-announce">🏆 ${sortedPlayers[0].name.toUpperCase()} WINS!<br><small>${sortedPlayers[0].total} Total Points</small></div>`;
+    } else if (someoneOverThreshold) {
+        banner.innerHTML = `<div style="color:var(--orange); font-weight:bold; margin-bottom:10px;">FINAL ROUND IN PROGRESS!</div>`;
+    } else {
+        banner.innerHTML = "";
+    }
+
+    // Leaderboard
     let lb = document.getElementById('leaderboard'); lb.innerHTML = "";
-    players.map(p => ({ ...p, total: (p.history || []).reduce((a,b)=>a+b, 0) })).sort((a,b)=>b.total-a.total).forEach(p => {
+    sortedPlayers.forEach(p => {
         lb.innerHTML += `<div class="p-row ${p.name === myName ? 'is-me' : ''}"><div><b>${p.name} ${p.submitted ? '✅' : '⏳'}</b><br><small>Round: +${p.history[data.roundNum] || 0}</small></div><div style="font-size:1.5rem;font-weight:800;">${p.total}</div></div>`;
     });
 
+    // History
     let hLog = document.getElementById('history-log-container'); hLog.innerHTML = "";
     for (let r = data.roundNum; r >= 1; r--) {
         let rH = `<div class="history-block" ${data.host === myName ? `onclick="revertToRound(${r})"` : ''}><span class="round-label">Round ${r} ${data.host === myName ? '↩️' : ''}</span>`;
@@ -165,16 +154,19 @@ function syncApp(snap) {
 
     if (me.submitted) { document.getElementById('calc-view').style.display = 'none'; document.getElementById('waiting-view').style.display = 'block'; }
     else { document.getElementById('calc-view').style.display = 'block'; document.getElementById('waiting-view').style.display = 'none'; }
-    document.getElementById('nextRoundBtn').style.display = (data.host === myName && players.every(p=>p.submitted)) ? 'block' : 'none';
+    
+    // Hide Next Round button if game is over
+    document.getElementById('nextRoundBtn').style.display = (data.host === myName && everyoneDone && !someoneOverThreshold) ? 'block' : 'none';
+    
+    // If game is over, show Host "End Game" button more prominently
+    document.getElementById('host-end-game-container').innerHTML = (data.host === myName) ? 
+        `<button class="big-btn host-btn" onclick="endGame()">${someoneOverThreshold && everyoneDone ? 'START NEW GAME' : 'END GAME FOR ALL'}</button>` : "";
 }
 
-// --- Submission ---
 window.submitRound = async () => {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let totalB = bonuses.reduce((a, b) => a + b, 0);
-    const flip7S = (usedCards.length === 7) ? 15 : 0;
-    let score = busted ? 0 : (sum * mult) + totalB + flip7S;
-    
+    const score = busted ? 0 : (sum * mult) + totalB + (usedCards.length === 7 ? 15 : 0);
     const snap = await get(ref(db, `games/${gameCode}`));
     const data = snap.val();
     let h = data.players[myName].history || [0];
@@ -212,3 +204,4 @@ window.revertToRound = async (r) => {
 };
 
 window.leaveGame = () => { localStorage.removeItem('f7_code'); location.reload(); };
+window.endGame = async () => { if(confirm("End game?")) { await set(ref(db, `games/${gameCode}`), null); location.reload(); }};

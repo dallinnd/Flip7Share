@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Flip 7 Share Pro</title>
+    
+    <meta name="theme-color" content="#008080">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -65,8 +72,15 @@
                     <button id="btn-p10" onclick="toggleMod('p10', 10)">+10</button>
                     <button class="bust-btn" onclick="triggerBust()">BUST</button>
                 </div>
-                <div id="calc-display" class="large-total">0</div>
-                <button class="submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
+                
+                <div class="totals-area">
+                    <div class="round-total-label">ROUND TOTAL: <span id="round-display">0</span></div>
+                    <div class="grand-total-container">
+                        <div class="grand-label">GRAND TOTAL</div>
+                        <div id="grand-display" class="grand-total-box">0</div>
+                    </div>
+                </div>
+                <button class="big-btn submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
             </div>
 
             <div id="waiting-view" style="display:none;">
@@ -85,7 +99,6 @@
             <h2>Round Logs</h2>
         </div>
         <div id="history-log-container"></div>
-        <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 20px;">Hosts: Tap a round to Rewind.</p>
     </div>
 
     <script type="module" src="app.js"></script>

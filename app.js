@@ -56,6 +56,13 @@ async function joinGame(code) {
     onValue(ref(db, `games/${code}`), syncApp);
 }
 
+window.leaveGame = () => {
+    if (confirm("Are you sure you want to leave the game?")) {
+        localStorage.removeItem('f7_code');
+        location.reload();
+    }
+};
+
 // --- Card Grid Generation ---
 const grid = document.getElementById('cardGrid');
 for(let i=1; i<=12; i++){
@@ -69,14 +76,20 @@ for(let i=1; i<=12; i++){
     grid.appendChild(btn);
 }
 
-// --- Toggle Logic ---
-window.toggleMod = (id, val, m) => {
+// --- Calculator Logic ---
+window.toggleMod = (id, val) => {
     if(id === 'm2') mult = (mult === 2) ? 1 : 2;
     else bonus = (bonus === val) ? 0 : val;
     updateUI();
 };
 
-window.triggerBust = () => { busted = true; usedCards = []; mult = 1; bonus = 0; updateUI(); };
+window.triggerBust = () => { 
+    busted = true; usedCards = []; mult = 1; bonus = 0; 
+    const display = document.getElementById('calc-display');
+    display.classList.add('shake');
+    setTimeout(() => display.classList.remove('shake'), 400);
+    updateUI(); 
+};
 
 function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
@@ -96,10 +109,11 @@ function updateUI() {
     });
 }
 
-// --- Game Logic ---
+// --- Sync & Round Logic ---
 function syncApp(snap) {
     const data = snap.val(); if(!data) return;
     const players = Object.values(data.players || {});
+    const me = data.players[myName];
     
     if (data.status === "waiting") {
         showScreen('lobby-screen');
@@ -112,20 +126,37 @@ function syncApp(snap) {
 
     showScreen('game-screen');
     document.getElementById('roomCodeDisplay').innerText = "Game: " + gameCode;
+    
+    // Auto-Toggle Views
+    if (me && me.submitted) {
+        document.getElementById('calc-view').style.display = 'none';
+        document.getElementById('waiting-view').style.display = 'block';
+    } else {
+        document.getElementById('calc-view').style.display = 'block';
+        document.getElementById('waiting-view').style.display = 'none';
+    }
+
     const allDone = players.length >= data.targetCount && players.every(p => p.submitted === true);
     let lb = document.getElementById('leaderboard');
     lb.innerHTML = "";
+    
     players.sort((a,b) => b.grandTotal - a.grandTotal).forEach(p => {
-        lb.innerHTML += `<div class="p-row"><span>${p.name} ${p.submitted ? '✅' : '⏳'}</span><span>${p.grandTotal} <small>(+${p.lastScore || 0})</small></span></div>`;
+        const isMeClass = p.name === myName ? 'is-me' : '';
+        lb.innerHTML += `
+            <div class="p-row ${isMeClass}">
+                <span>${p.name} ${p.submitted ? '✅' : '⏳'}</span>
+                <span>${p.grandTotal} <small>(+${p.lastScore || 0})</small></span>
+            </div>`;
         if(p.grandTotal >= 200) alert(p.name + " WINS!");
     });
-    document.getElementById('nextRoundBtn').style.display = allDone ? 'block' : 'none';
-    
-    // Auto-Return to Calculator if round reset
-    const me = data.players[myName];
-    if(me && me.submitted === false && document.getElementById('waiting-view').style.display === 'block') {
-        document.getElementById('calc-view').style.display = 'block';
-        document.getElementById('waiting-view').style.display = 'none';
+
+    // Only host can advance round
+    const nextBtn = document.getElementById('nextRoundBtn');
+    if (allDone && data.host === myName) {
+        nextBtn.style.display = 'block';
+    } else {
+        nextBtn.style.display = 'none';
+        if (allDone) lb.innerHTML += `<p class="pulse">Waiting for host to start next round...</p>`;
     }
 }
 
@@ -134,8 +165,16 @@ window.submitRound = async () => {
     let total = busted ? 0 : (sum * mult) + bonus;
     await update(ref(db, `games/${gameCode}/players/${myName}`), { grandTotal: increment(total), lastScore: total, submitted: true });
     usedCards = []; mult = 1; bonus = 0; busted = false; updateUI();
-    document.getElementById('calc-view').style.display = 'none';
-    document.getElementById('waiting-view').style.display = 'block';
 };
 
-window.readyForNextRound = () => update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
+window.readyForNextRound = () => {
+    // We update every player's submitted status to false
+    const updates = {};
+    onValue(ref(db, `games/${gameCode}/players`), (snap) => {
+        const players = snap.val();
+        for(let p in players) {
+            updates[`games/${gameCode}/players/${p}/submitted`] = false;
+        }
+    }, { onlyOnce: true });
+    update(ref(db), updates);
+};

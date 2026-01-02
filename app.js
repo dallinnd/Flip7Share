@@ -1,43 +1,42 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue, update, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = { /* ... your config ... */ };
+const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Initialization
 let gameCode = localStorage.getItem('f7_code');
-let myName = localStorage.getItem('f7_name') || "Player";
+let myName = localStorage.getItem('f7_name') || "";
 let usedCards = JSON.parse(localStorage.getItem('f7_used') || "[]");
 let multipliers = 1, bonus = 0, isBusted = false;
 
-document.getElementById('userNameInput').value = myName;
-if(gameCode) document.getElementById('resume-btn').style.display = 'block';
+const nameInput = document.getElementById('userNameInput');
+nameInput.value = myName;
+nameInput.oninput = () => {
+    myName = nameInput.value;
+    localStorage.setItem('f7_name', myName);
+};
 
-// Navigation & Persistence
+if(gameCode && myName) document.getElementById('resume-btn').style.display = 'block';
+
+// Navigation
 window.showScreen = (id) => {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.getElementById(id).style.display = 'block';
 };
 
-window.activateNameEdit = () => {
-    const input = document.getElementById('userNameInput');
-    input.readOnly = false; input.focus();
-    input.onblur = () => { input.readOnly = true; myName = input.value; localStorage.setItem('f7_name', myName); };
-};
-
-// --- Calculator Logic ---
+// --- Flip 7 Card Logic ---
 const grid = document.getElementById('cardGrid');
 for(let i=1; i<=12; i++){
     let btn = document.createElement('button');
     btn.id = 'card-'+i; btn.innerText = i;
-    btn.onclick = () => toggleCard(i);
+    btn.onclick = () => {
+        if(usedCards.includes(i)) usedCards = usedCards.filter(v => v !== i);
+        else usedCards.push(i);
+        updateUI();
+    };
     grid.appendChild(btn);
-}
-
-function toggleCard(val) {
-    if(usedCards.includes(val)) usedCards = usedCards.filter(v => v !== val);
-    else usedCards.push(val);
-    updateUI();
 }
 
 window.toggleMod = (id, val, mult) => {
@@ -46,32 +45,38 @@ window.toggleMod = (id, val, mult) => {
     updateUI();
 };
 
+window.triggerBust = () => {
+    isBusted = true; usedCards = []; multipliers = 1; bonus = 0;
+    updateUI();
+};
+
 function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let total = isBusted ? 0 : (sum * multipliers) + bonus;
     document.getElementById('calc-display').innerText = isBusted ? "BUST!" : "Total: " + total;
     
-    // Color Cards: Teal if used, Transparent if not
+    // Highlight used cards in Teal
     for(let i=1; i<=12; i++) {
-        document.getElementById('card-'+i).style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
+        let b = document.getElementById('card-'+i);
+        b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
     }
     localStorage.setItem('f7_used', JSON.stringify(usedCards));
 }
 
-// --- Firebase Flow ---
+// --- Firebase Sync ---
 window.hostGame = async () => {
+    if(!myName) return alert("Please enter your name first!");
     gameCode = Math.floor(100000 + Math.random() * 900000);
     localStorage.setItem('f7_code', gameCode);
-    await set(ref(db, 'games/' + gameCode), { host: myName, round: 1, players: {} });
+    await set(ref(db, 'games/' + gameCode), { host: myName, players: {} });
     joinGame(gameCode);
 };
 
 window.openJoinPopup = () => {
+    if(!myName) return alert("Please enter your name first!");
     let c = prompt("Enter 6-digit Code:");
     if(c) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
 };
-
-window.resumeGame = () => joinGame(gameCode);
 
 async function joinGame(code) {
     await update(ref(db, `games/${code}/players/${myName}`), { name: myName, grandTotal: 0, submitted: false });
@@ -82,13 +87,9 @@ async function joinGame(code) {
 window.submitRound = async () => {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let total = isBusted ? 0 : (sum * multipliers) + bonus;
-    
     await update(ref(db, `games/${gameCode}/players/${myName}`), { 
-        lastScore: total, 
-        grandTotal: increment(total),
-        submitted: true 
+        lastScore: total, grandTotal: increment(total), submitted: true 
     });
-    
     document.getElementById('calc-view').style.display = 'none';
     document.getElementById('waiting-view').style.display = 'block';
 };
@@ -96,35 +97,26 @@ window.submitRound = async () => {
 function syncGame(snap) {
     const data = snap.val();
     if(!data) return;
-    
     const players = Object.values(data.players);
-    const allSubmitted = players.every(p => p.submitted === true);
-    
-    // Update Leaderboard
+    const allDone = players.every(p => p.submitted === true);
+
     let lb = document.getElementById('leaderboard');
     lb.innerHTML = "";
     players.sort((a,b) => b.grandTotal - a.grandTotal).forEach(p => {
         lb.innerHTML += `<div class="p-row"><span>${p.name}</span><span>${p.grandTotal}</span></div>`;
     });
 
-    // Show Orange Button if everyone is done
-    document.getElementById('nextRoundBtn').style.display = allSubmitted ? 'block' : 'none';
-    
-    // If round has reset (Host triggered), go back to calculator
-    if(players.every(p => p.submitted === false)) {
-        resetLocalRound();
-    }
+    document.getElementById('nextRoundBtn').style.display = allDone ? 'block' : 'none';
+    if(players.every(p => p.submitted === false)) resetLocalRound();
 }
+
+window.readyForNextRound = async () => {
+    await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
+};
 
 function resetLocalRound() {
     usedCards = []; multipliers = 1; bonus = 0; isBusted = false;
-    localStorage.setItem('f7_used', "[]");
     updateUI();
     document.getElementById('calc-view').style.display = 'block';
     document.getElementById('waiting-view').style.display = 'none';
 }
-
-window.readyForNextRound = async () => {
-    // Each player resets their own 'submitted' status to false to clear the leaderboard lock
-    await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
-};

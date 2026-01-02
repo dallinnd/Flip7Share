@@ -26,6 +26,7 @@
         <div id="lobby-status">Joined: 0 / 0</div>
         <div id="player-list" class="player-list"></div>
         <p class="pulse">Waiting for everyone to join...</p>
+        <button class="leave-btn" onclick="leaveGame()">Leave Lobby</button>
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">
@@ -39,21 +40,23 @@
         <div id="calc-view">
             <div class="card-grid" id="cardGrid"></div>
             <div class="mod-grid">
-                <button id="btn-m2" onclick="toggleMod('m2', 0, 2)">×2</button>
-                <button id="btn-p2" onclick="toggleMod('p2', 2, 1)">+2</button>
-                <button id="btn-p4" onclick="toggleMod('p4', 4, 1)">+4</button>
-                <button id="btn-p6" onclick="toggleMod('p6', 6, 1)">+6</button>
-                <button id="btn-p8" onclick="toggleMod('p8', 8, 1)">+8</button>
-                <button id="btn-p10" onclick="toggleMod('p10', 10, 1)">+10</button>
+                <button id="btn-m2" onclick="toggleMod('m2', 0)">×2</button>
+                <button id="btn-p2" onclick="toggleMod('p2', 2)">+2</button>
+                <button id="btn-p4" onclick="toggleMod('p4', 4)">+4</button>
+                <button id="btn-p6" onclick="toggleMod('p6', 6)">+6</button>
+                <button id="btn-p8" onclick="toggleMod('p8', 8)">+8</button>
+                <button id="btn-p10" onclick="toggleMod('p10', 10)">+10</button>
                 <button class="bust-btn" onclick="triggerBust()">BUST</button>
             </div>
-
             <div id="calc-display" class="large-total">0</div>
             <button class="submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
         </div>
 
         <div id="waiting-view" style="display:none;">
-            <h2>Round Summary</h2>
+            <div class="summary-header">
+                <button class="small-back-btn" onclick="leaveGame()">✕ Leave</button>
+                <h2>Round Summary</h2>
+            </div>
             <div id="leaderboard"></div>
             <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
         </div>

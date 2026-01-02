@@ -30,47 +30,51 @@
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">
-        <div class="top-nav">
-            <div class="home-icon-wrapper" onclick="showScreen('home-screen')">
-                <svg viewBox="0 0 24 24" class="nav-svg"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <div class="top-nav-container">
+            <div class="top-nav-row">
+                <button class="nav-btn-themed" onclick="showScreen('home-screen')">HOME</button>
+                <div id="roomCodeDisplay" class="nav-center-text">GAME: ------</div>
+                <button class="nav-btn-themed" onclick="showScreen('history-screen')">HISTORY</button>
             </div>
-            <span id="roomCodeDisplay" class="top-right-game">Game: ------</span>
+            <div class="top-nav-row center">
+                <button class="nav-btn-themed leave-style" onclick="leaveGame()">LEAVE GAME</button>
+            </div>
         </div>
 
-        <div id="calc-view">
-            <div class="card-grid" id="cardGrid"></div>
-            <div class="mod-grid">
-                <button id="btn-m2" onclick="toggleMod('m2', 0)">×2</button>
-                <button id="btn-p2" onclick="toggleMod('p2', 2)">+2</button>
-                <button id="btn-p4" onclick="toggleMod('p4', 4)">+4</button>
-                <button id="btn-p6" onclick="toggleMod('p6', 6)">+6</button>
-                <button id="btn-p8" onclick="toggleMod('p8', 8)">+8</button>
-                <button id="btn-p10" onclick="toggleMod('p10', 10)">+10</button>
-                <button class="bust-btn" onclick="triggerBust()">BUST</button>
+        <div class="main-scroll-area">
+            <div id="calc-view">
+                <div class="card-grid" id="cardGrid"></div>
+                <div class="mod-grid">
+                    <button id="btn-m2" onclick="toggleMod('m2', 0)">×2</button>
+                    <button id="btn-p2" onclick="toggleMod('p2', 2)">+2</button>
+                    <button id="btn-p4" onclick="toggleMod('p4', 4)">+4</button>
+                    <button id="btn-p6" onclick="toggleMod('p6', 6)">+6</button>
+                    <button id="btn-p8" onclick="toggleMod('p8', 8)">+8</button>
+                    <button id="btn-p10" onclick="toggleMod('p10', 10)">+10</button>
+                    <button class="bust-btn" onclick="triggerBust()">BUST</button>
+                </div>
+                <div id="calc-display" class="large-total">0</div>
+                <button class="submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
             </div>
-            <div id="calc-display" class="large-total">0</div>
-            <button class="submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
-        </div>
 
-        <div id="waiting-view" style="display:none;">
-            <div class="summary-header">
-                <button class="small-back-btn" onclick="leaveGame()">✕ Leave</button>
-                <h2>Leaderboard</h2>
-                <button class="small-back-btn" onclick="showScreen('history-screen')">📜 History</button>
+            <div id="waiting-view" style="display:none;">
+                <div class="summary-header">
+                    <h2>Leaderboard</h2>
+                </div>
+                <div id="leaderboard"></div>
+                <div id="host-end-game-container"></div>
+                <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
             </div>
-            <div id="leaderboard"></div>
-            <div id="host-end-game-container"></div>
-            <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
         </div>
     </div>
 
     <div id="history-screen" class="screen" style="display:none;">
         <div class="summary-header">
-            <button class="small-back-btn" onclick="showScreen('game-screen')">← Back</button>
+            <button class="nav-btn-themed" onclick="showScreen('game-screen')">BACK</button>
             <h2>Round Logs</h2>
         </div>
         <div id="history-log-container"></div>
-        <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 20px;">Hosts can tap a round to rewind the game.</p>
+        <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 20px;">Hosts: Tap a round to Rewind.</p>
     </div>
 
     <script type="module" src="app.js"></script>

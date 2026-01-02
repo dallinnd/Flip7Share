@@ -24,11 +24,24 @@ body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green))
 .bust-btn { background: #ff4444 !important; }
 
 /* Large Display */
-.large-total { font-size: 3.5rem; font-weight: 800; margin: 15px 0; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.large-total { font-size: 3.5rem; font-weight: 800; margin: 15px 0; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: color 0.2s; }
 .submit-btn { background: white; color: var(--teal); width: 100%; padding: 20px; border-radius: 15px; border: none; font-weight: 900; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
 /* Results */
 .p-row { display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); margin: 5px 0; border-radius: 8px; }
+.p-row.is-me { border: 2px solid white; background: rgba(255, 255, 255, 0.3); }
 .next-round-btn { background: var(--orange); color: white; border: none; padding: 22px; width: 100%; border-radius: 12px; font-size: 1.4rem; font-weight: bold; margin-top: 20px; }
 .summary-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
 .small-back-btn { background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; }
+
+/* Animations */
+.pulse { animation: pulse-opacity 2s infinite ease-in-out; }
+@keyframes pulse-opacity { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+.shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}

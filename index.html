@@ -4,23 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Flip 7 Share Pro</title>
-    
     <meta name="theme-color" content="#008080">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="celebration-overlay" class="overlay" style="display:none;" onclick="closeCelebration()">
+        <div class="celebration-content">
+            <div class="emoji-bounce">🃏</div>
+            <h1>FLIP 7!</h1>
+            <p>You played 7 cards!</p>
+            <h2 class="bonus-text">+15 POINTS</h2>
+            <p class="tap-hint">Tap anywhere to continue</p>
+        </div>
+    </div>
+
     <div id="home-screen" class="screen">
         <h1>Flip 7 Share</h1>
         <div class="setup-section">
             <p>Enter Player Name:</p>
-            <input type="text" id="userNameInput" placeholder="Tap to type name..." class="name-input-field" enterkeyhint="done">
+            <input type="text" id="userNameInput" placeholder="Tap to type name..." class="name-input-field">
         </div>
-
         <div id="host-setup-area" class="host-setup-container">
             <p>How many players?</p>
             <div class="counter-row">
@@ -30,19 +37,8 @@
             </div>
             <button class="big-btn host-btn" onclick="hostGameFromUI()">HOST NEW GAME</button>
         </div>
-
-        <div class="action-section">
-            <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
-            <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
-        </div>
-    </div>
-
-    <div id="lobby-screen" class="screen" style="display:none;">
-        <h2 id="roomDisplayLobby">Game: ------</h2>
-        <div id="lobby-status" style="font-weight: bold; margin-bottom: 10px;">Joined: 0 / 0</div>
-        <div id="player-list" class="player-list"></div>
-        <p class="pulse">Waiting for everyone to join...</p>
-        <button class="nav-btn-themed leave-style" onclick="leaveGame()">Leave Lobby</button>
+        <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
+        <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">
@@ -52,17 +48,14 @@
                 <div id="roomCodeDisplay" class="nav-center-text">GAME: ------</div>
                 <button class="nav-btn-themed" onclick="showScreen('history-screen')">HISTORY</button>
             </div>
-            <div class="top-nav-row center">
-                <button class="nav-btn-themed leave-style" onclick="leaveGame()">LEAVE GAME</button>
-            </div>
+            <button class="nav-btn-themed leave-style" onclick="leaveGame()">LEAVE GAME</button>
         </div>
 
         <div class="main-scroll-area">
             <div id="calc-view">
-                <div id="flip7-banner" class="flip7-container" style="display:none;">
-                    You got Flip7! +15 Points
-                </div>
+                <div id="flip7-banner" class="flip7-container" style="display:none;">FLIP 7 BONUS ACTIVE! +15</div>
                 <div class="card-grid" id="cardGrid"></div>
+                <button class="big-btn bust-btn" onclick="triggerBust()">BUST</button>
                 <div class="mod-grid">
                     <button id="btn-m2" onclick="toggleMod('m2', 0)">×2</button>
                     <button id="btn-p2" onclick="toggleMod('p2', 2)">+2</button>
@@ -70,9 +63,7 @@
                     <button id="btn-p6" onclick="toggleMod('p6', 6)">+6</button>
                     <button id="btn-p8" onclick="toggleMod('p8', 8)">+8</button>
                     <button id="btn-p10" onclick="toggleMod('p10', 10)">+10</button>
-                    <button class="big-btn bust-btn" onclick="triggerBust()">BUST</button>
                 </div>
-                
                 <div class="totals-row">
                     <div class="total-box round-box">
                         <div class="box-label">ROUND</div>
@@ -85,25 +76,13 @@
                 </div>
                 <button class="big-btn submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
             </div>
-
             <div id="waiting-view" style="display:none;">
-                <div id="winner-banner"></div>
                 <h2>Leaderboard</h2>
                 <div id="leaderboard"></div>
-                <div id="host-end-game-container"></div>
                 <button id="nextRoundBtn" class="big-btn next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
             </div>
         </div>
     </div>
-
-    <div id="history-screen" class="screen" style="display:none;">
-        <div class="summary-header">
-            <button class="nav-btn-themed" onclick="showScreen('game-screen')">BACK</button>
-            <h2>Round Logs</h2>
-        </div>
-        <div id="history-log-container"></div>
-    </div>
-
     <script type="module" src="app.js"></script>
 </body>
 </html>

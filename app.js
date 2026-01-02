@@ -18,15 +18,14 @@ let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-// HAPTICS
 const vib = (ms = 15) => { if(navigator.vibrate) navigator.vibrate(ms); };
 
 window.adjustCount = (v) => {
     let newVal = targetPlayerCount + v;
     if (newVal >= 1 && newVal <= 20) {
         targetPlayerCount = newVal;
-        const disp = document.getElementById('playerCountDisplay');
-        if (disp) disp.innerText = targetPlayerCount;
+        document.getElementById('playerCountDisplay').innerText = targetPlayerCount;
+        vib(10);
     }
 };
 
@@ -39,25 +38,23 @@ window.hostGameFromUI = async () => {
         await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: targetPlayerCount, status: "waiting", roundNum: 1 });
         await set(ref(db, `games/${gameCode}/players/${myName}`), { name: myName, history: [0], submitted: false });
         onValue(ref(db, `games/${gameCode}`), syncApp);
-    } catch (e) { alert("Hosting failed: " + e.message); }
+    } catch (e) { alert("Hosting failed!"); }
 };
 
 window.openJoinPopup = () => {
     let c = prompt("Enter 6-digit code:");
     if(c && myName) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
-    else if (!myName) alert("Enter your name on the home screen first!");
 };
 
 window.showScreen = (id) => {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    const target = document.getElementById(id);
-    if (target) target.style.display = 'flex';
+    document.getElementById(id).style.display = 'flex';
 };
 
 window.triggerBust = () => {
     vib(50);
     busted = !busted;
-    if(busted) { usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; }
+    if(busted) { usedCards = []; bonuses = []; mult = 1; }
     updateUI();
 };
 
@@ -69,29 +66,16 @@ window.toggleMod = (id, val) => {
 };
 
 window.resumeGame = () => { if(gameCode) joinGame(gameCode); };
-
-window.clearSession = () => {
-    if(confirm("Clear saved game session?")) {
-        localStorage.removeItem('f7_code');
-        gameCode = null;
-        document.getElementById('resume-container').style.display = 'none';
-        vib(40);
-    }
-};
+window.clearSession = () => { if(confirm("Clear session?")) { localStorage.removeItem('f7_code'); location.reload(); }};
 
 window.editCurrentRound = async () => {
-    vib(30);
     const snap = await get(ref(db, `games/${gameCode}`));
     const data = snap.val();
     const myData = data.players[myName];
-    const rNum = data.roundNum;
-
-    if (myData && myData.history && myData.history[rNum]) {
-        const saved = myData.history[rNum];
-        usedCards = saved.usedCards || [];
-        bonuses = saved.bonuses || [];
-        mult = saved.mult || 1;
-        busted = saved.busted || false;
+    const saved = myData.history[data.roundNum];
+    if (saved) {
+        usedCards = saved.usedCards || []; bonuses = saved.bonuses || [];
+        mult = saved.mult || 1; busted = saved.busted || false;
         await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
         updateUI();
     }
@@ -102,7 +86,6 @@ async function joinGame(code) {
     const snap = await get(pRef);
     if (!snap.exists()) await set(pRef, { name: myName, history: [0], submitted: false });
     onValue(ref(db, `games/${code}`), syncApp);
-    window.showScreen('lobby-screen');
 }
 
 function updateUI() {
@@ -122,16 +105,16 @@ function updateUI() {
     document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
     
     document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
-    const banner = document.getElementById('flip7-banner');
-    if (banner) banner.style.display = (hasF7 && !busted) ? 'block' : 'none';
+    document.getElementById('flip7-banner').style.display = (hasF7 && !busted) ? 'block' : 'none';
 
     const grid = document.getElementById('cardGrid');
-    if(grid) {
-        for(let i=0; i<=12; i++) {
-            const b = grid.children[i];
-            if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
-        }
+    for(let i=0; i<=12; i++) {
+        if(grid.children[i]) grid.children[i].style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
     }
+    document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
+    [2,4,6,8,10].forEach(v => {
+        document.getElementById('btn-p' + v).className = bonuses.includes(v) ? "mod-btn-active" : "";
+    });
 }
 
 function syncApp(snap) {
@@ -201,22 +184,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if(gameCode && resContainer) resContainer.style.display = "flex";
 
     const grid = document.getElementById('cardGrid');
-    if (grid) {
-        grid.innerHTML = "";
-        for(let i=0; i<=12; i++){
-            let btn = document.createElement('button'); btn.innerText = i;
-            btn.onclick = () => { 
-                vib();
-                if (busted) { busted = false; usedCards = [i]; } 
-                else {
-                    if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
-                    else if(usedCards.length < 7) usedCards.push(i);
-                }
-                updateUI(); 
-            };
-            grid.appendChild(btn);
-        }
+    for(let i=0; i<=12; i++){
+        let btn = document.createElement('button'); btn.innerText = i;
+        btn.onclick = () => { 
+            vib();
+            if (busted) { busted = false; usedCards = [i]; } 
+            else {
+                if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
+                else if(usedCards.length < 7) usedCards.push(i);
+            }
+            updateUI(); 
+        };
+        grid.appendChild(btn);
     }
-    const countDisp = document.getElementById('playerCountDisplay');
-    if(countDisp) countDisp.innerText = targetPlayerCount;
 });

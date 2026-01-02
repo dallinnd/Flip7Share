@@ -2,21 +2,24 @@
 body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); color: white; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; overflow: hidden; }
 .screen { width: 90%; max-width: 420px; text-align: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
-/* Name Section Styles */
-.setup-section { margin-bottom: 30px; text-align: left; }
-.setup-section p { margin-left: 5px; font-weight: bold; font-size: 0.9rem; opacity: 0.9; }
-.name-input-field { 
-    width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 1.2rem; 
-    box-sizing: border-box; color: var(--teal); background: white; outline: none;
-}
+.setup-section { margin-bottom: 25px; text-align: left; }
+.name-input-field { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 1.2rem; color: var(--teal); outline: none; box-sizing: border-box; }
 
-/* Button Styles */
-.big-btn { width: 100%; padding: 20px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
+.big-btn { width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
 .host-btn { background: white; color: var(--teal); }
 .join-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
-.resume-btn { background: var(--orange); color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; }
+.resume-btn { background: var(--orange); border: none; color: white; width: 100%; padding: 10px; border-radius: 8px; margin-top: 10px; }
 
-/* Calculator & Grid */
 .card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
-.card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 15px 5px; border-radius: 8px; font-weight: bold; }
-.next-round-btn { background: var(--orange); color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 1.4rem; font-weight: bold; margin-top: 20px; }
+.card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 12px 5px; border-radius: 8px; font-weight: bold; }
+.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
+.bust-btn { background: #ff4444 !important; }
+.submit-btn { background: white; color: var(--teal); width: 100%; margin-top: 15px; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
+
+.player-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px 0; }
+.p-tag { background: white; color: var(--teal); padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 0.8rem; }
+.p-row { display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); margin: 5px 0; border-radius: 8px; }
+.next-round-btn { background: var(--orange); color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 1.3rem; font-weight: bold; margin-top: 20px; }
+.pulse { font-size: 0.8rem; opacity: 0.7; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }

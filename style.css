@@ -2,18 +2,20 @@
 
 body { 
     margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); 
-    color: white; height: 100vh; display: flex; align-items: center; justify-content: center; 
-    font-family: sans-serif; overflow: hidden; 
+    color: white; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; 
+    font-family: sans-serif; overflow-x: hidden; overflow-y: auto; 
 }
 
 .screen { 
-    width: 90%; max-width: 420px; text-align: center; 
+    width: calc(100% - 40px); /* Fits device width with padding */
+    max-width: 500px; text-align: center; 
     background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); 
-    padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-    display: flex; flex-direction: column; max-height: 92vh;
+    padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    display: flex; flex-direction: column; margin: 20px auto;
+    overflow-y: auto; /* Makes every page scrollable */
 }
 
-/* Home UI */
+/* Home UI Scale */
 .name-input-field { 
     width: 100%; padding: 20px; border-radius: 15px; border: none; 
     font-size: 1.6rem; color: var(--teal); outline: none; box-sizing: border-box; 
@@ -33,37 +35,35 @@ body {
 .counter-btn { background: white; color: var(--teal); border: none; width: 55px; height: 55px; border-radius: 50%; font-size: 2rem; font-weight: bold; cursor: pointer; }
 .count-display { font-size: 2.8rem; font-weight: 800; min-width: 60px; }
 
-/* Navigation */
+/* Sticky Nav */
 .top-nav-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); }
 .top-nav-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-.top-nav-row.center { justify-content: center; }
 .nav-btn-themed { background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; border-radius: 10px; padding: 10px 18px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
 .leave-style { padding: 12px 30px; font-size: 0.9rem; }
 
-/* Flip7 Banner */
-.flip7-container { 
-    background: var(--gold); color: #000; padding: 12px; border-radius: 12px; 
-    font-weight: 900; font-size: 1.1rem; margin-bottom: 15px; 
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); animation: popIn 0.3s both;
-}
+/* Game Area */
+.main-scroll-area { overflow-y: auto; max-height: 70vh; padding-right: 5px; }
+
+.flip7-container { background: var(--gold); color: #000; padding: 12px; border-radius: 12px; font-weight: 900; margin-bottom: 15px; animation: popIn 0.3s both; }
 @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-/* Calculator Grid */
-.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
-.card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 12px 5px; border-radius: 8px; font-weight: bold; transition: opacity 0.2s; }
-.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
 .mod-btn-active { background: var(--orange) !important; border-color: var(--orange) !important; transform: scale(1.05); }
+.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
+.card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 12px 5px; border-radius: 8px; font-weight: bold; }
+.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 10px; border-radius: 8px; }
 
-/* Main Scrolling Area */
-.main-scroll-area { overflow-y: auto; padding-right: 5px; }
-.main-scroll-area::-webkit-scrollbar { width: 5px; }
-.main-scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+.winner-announce {
+    background: var(--gold);
+    color: black;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    font-weight: 900;
+    font-size: 1.5rem;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
 
-/* General */
-.large-total { font-size: 3.5rem; font-weight: 800; margin: 15px 0; }
-.submit-btn { background: white; color: var(--teal); width: 100%; padding: 20px; border-radius: 15px; border: none; font-weight: 900; font-size: 1.2rem; }
-.bust-btn { background: #ff4444 !important; border: none; }
 .p-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.2); margin: 8px 0; border-radius: 10px; }
 .p-row.is-me { border: 2px solid white; background: rgba(255, 255, 255, 0.3); }
 

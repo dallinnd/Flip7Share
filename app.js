@@ -18,7 +18,9 @@ let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-// FIX: Counter logic with proper range and display update
+// HAPTIC FEEDBACK HELPER
+const vib = (ms = 15) => { if(navigator.vibrate) navigator.vibrate(ms); };
+
 window.adjustCount = (v) => {
     let newVal = targetPlayerCount + v;
     if (newVal >= 1 && newVal <= 20) {
@@ -53,14 +55,14 @@ window.showScreen = (id) => {
 };
 
 window.triggerBust = () => {
+    vib(50); // Stronger vibration for bust
     busted = !busted;
-    if(busted) { 
-        usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; 
-    }
+    if(busted) { usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; }
     updateUI();
 };
 
 window.toggleMod = (id, val) => {
+    vib();
     if(id === 'm2') mult = (mult === 2) ? 1 : 2;
     else bonuses.includes(val) ? bonuses = bonuses.filter(b=>b!==val) : bonuses.push(val);
     updateUI();
@@ -70,7 +72,10 @@ window.closeCelebration = () => {
     document.getElementById('celebration-overlay').style.display = 'none';
 };
 
-window.resumeGame = () => joinGame(gameCode);
+window.resumeGame = () => {
+    if(gameCode) joinGame(gameCode);
+};
+
 window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};
 
 async function joinGame(code) {
@@ -78,6 +83,8 @@ async function joinGame(code) {
     const snap = await get(pRef);
     if (!snap.exists()) await set(pRef, { name: myName, history: [0], submitted: false });
     onValue(ref(db, `games/${code}`), syncApp);
+    // Force transition to avoid "stuck" home screen
+    window.showScreen('lobby-screen'); 
 }
 
 function updateUI() {
@@ -85,9 +92,9 @@ function updateUI() {
     let totalB = bonuses.reduce((a, b) => a + b, 0);
     const hasF7 = (usedCards.length === 7);
     
-    // BUG FIX: Celebration Popup Trigger
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
+        vib([50, 30, 50]); // Celebration pulse
         hasCelebrated = true;
     }
     if(!hasF7) hasCelebrated = false;
@@ -103,7 +110,6 @@ function updateUI() {
     const banner = document.getElementById('flip7-banner');
     if (banner) banner.style.display = (hasF7 && !busted) ? 'block' : 'none';
 
-    // Update Grid highlights
     const grid = document.getElementById('cardGrid');
     if(grid) {
         for(let i=0; i<=12; i++) {
@@ -124,7 +130,6 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
-    // BUG FIX: Calculate grand total up to previous round
     const history = me.history || [0];
     currentGrandTotal = history.reduce((acc, entry, idx) => {
         if (idx > 0 && idx < data.roundNum) {
@@ -156,7 +161,6 @@ function syncApp(snap) {
                 <span>${p.total} ${p.total >= 200 ? '🔥' : 'pts'}</span>
             </div>`).join("");
         
-        // Logs UI logic
         let hHTML = "";
         for (let r = data.roundNum; r >= 1; r--) {
             let rows = playersArr.map(p => {
@@ -177,6 +181,7 @@ function syncApp(snap) {
 }
 
 window.submitRound = async () => {
+    vib(30);
     const snap = await get(ref(db, `games/${gameCode}`));
     const rNum = snap.val().roundNum;
     const score = busted ? 0 : (usedCards.reduce((a,b)=>a+b, 0) * mult) + bonuses.reduce((a,b)=>a+b, 0) + (usedCards.length === 7 ? 15 : 0);
@@ -188,6 +193,7 @@ window.submitRound = async () => {
 };
 
 window.readyForNextRound = async () => {
+    vib(40);
     const snap = await get(ref(db, `games/${gameCode}`));
     const up = { [`games/${gameCode}/roundNum`]: snap.val().roundNum + 1 };
     for (let p in snap.val().players) up[`games/${gameCode}/players/${p}/submitted`] = false;
@@ -204,13 +210,6 @@ window.revertToRound = async (r) => {
             up[`games/${gameCode}/players/${p}/submitted`] = false;
         }
         await update(ref(db), up);
-        const saved = data.players[myName].history[r];
-        if (saved && typeof saved === 'object') {
-            usedCards = saved.usedCards || []; bonuses = saved.bonuses || [];
-            mult = saved.mult || 1; busted = saved.busted || false;
-        } else { usedCards = []; bonuses = []; mult = 1; busted = false; }
-        window.showScreen('game-screen');
-        updateUI();
     }
 };
 
@@ -220,17 +219,18 @@ document.addEventListener('DOMContentLoaded', () => {
         nInput.value = myName;
         nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); };
     }
+    const resBtn = document.getElementById('resume-btn');
+    if(gameCode && resBtn) resBtn.style.display = "block";
+
     const grid = document.getElementById('cardGrid');
     if (grid) {
         grid.innerHTML = "";
         for(let i=0; i<=12; i++){
             let btn = document.createElement('button'); btn.innerText = i;
             btn.onclick = () => { 
-                // BUG FIX: Selection un-busts the user
-                if (busted) {
-                    busted = false;
-                    usedCards = [i];
-                } else {
+                vib();
+                if (busted) { busted = false; usedCards = [i]; } 
+                else {
                     if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
                     else if(usedCards.length < 7) usedCards.push(i);
                 }
@@ -239,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.appendChild(btn);
         }
     }
-    // FIX: Initialize the counter display correctly
     const countDisp = document.getElementById('playerCountDisplay');
     if(countDisp) countDisp.innerText = targetPlayerCount;
 });

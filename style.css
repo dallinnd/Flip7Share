@@ -1,86 +1,68 @@
 :root { --teal: #008080; --green: #2e8b57; --orange: #ff8c00; }
 
 body { 
-    margin: 0; 
-    background: linear-gradient(135deg, var(--teal), var(--green)); 
-    color: white; 
-    height: 100vh; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-family: sans-serif; 
-    overflow: hidden; 
+    margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); 
+    color: white; height: 100vh; display: flex; align-items: center; justify-content: center; 
+    font-family: sans-serif; overflow: hidden; 
 }
 
 .screen { 
-    width: 90%; 
-    max-width: 420px; 
-    text-align: center; 
-    background: rgba(255,255,255,0.1); 
-    backdrop-filter: blur(10px); 
-    padding: 25px; 
-    border-radius: 20px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
+    width: 90%; max-width: 420px; text-align: center; 
+    background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); 
+    padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    display: flex; flex-direction: column; max-height: 90vh;
 }
 
-/* Scroll Area */
-.main-scroll-area {
-    overflow-y: auto;
-    padding-right: 5px;
+/* Home UI Sizing */
+.name-input-field { 
+    width: 100%; padding: 20px; border-radius: 15px; border: none; 
+    font-size: 1.6rem; color: var(--teal); outline: none; box-sizing: border-box; 
+    margin-bottom: 25px; text-align: center; font-weight: bold;
 }
+
+.big-btn { 
+    width: 100%; padding: 22px; margin: 12px 0; border-radius: 15px; 
+    font-weight: 900; font-size: 1.4rem; border: none; cursor: pointer; text-transform: uppercase;
+}
+.host-btn { background: white; color: var(--teal); }
+.join-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
+
+/* Host Counter */
+.host-setup-container { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2); }
+.counter-row { display: flex; justify-content: center; align-items: center; gap: 30px; margin: 15px 0; }
+.counter-btn { background: white; color: var(--teal); border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 1.8rem; font-weight: bold; cursor: pointer; }
+.count-display { font-size: 2.5rem; font-weight: 800; min-width: 60px; }
+
+/* Navigation */
+.top-nav-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+.top-nav-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.nav-btn-themed { background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; border-radius: 10px; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; }
+.leave-style { padding: 12px 30px; font-size: 0.85rem; }
+
+/* Scrolling Content */
+.main-scroll-area { overflow-y: auto; padding-right: 5px; }
 .main-scroll-area::-webkit-scrollbar { width: 5px; }
 .main-scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
 
-/* Navigation */
-.top-nav-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-.top-nav-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-.top-nav-row.center { justify-content: center; }
-
-.nav-btn-themed {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 10px;
-    padding: 8px 15px;
-    font-weight: bold;
-    font-size: 0.75rem;
-    cursor: pointer;
-}
-.leave-style { padding: 10px 25px; font-size: 0.85rem; }
-
-/* Calculator Grid */
+/* Calculator Mods */
 .card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
 .card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 12px 5px; border-radius: 8px; font-weight: bold; }
 .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
-.bust-btn { background: #ff4444 !important; }
+.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; transition: background 0.2s; }
 
-/* Display */
-.large-total { font-size: 3.5rem; font-weight: 800; margin: 15px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-.submit-btn { background: white; color: var(--teal); width: 100%; padding: 20px; border-radius: 15px; border: none; font-weight: 900; font-size: 1.2rem; cursor: pointer; }
+/* ACTIVE STATE - ORANGE */
+.mod-btn-active { background: var(--orange) !important; border-color: var(--orange) !important; }
+.bust-btn { background: #ff4444 !important; color: white; border: none; }
 
-/* Leaderboard Rows */
-.p-row { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-    padding: 12px; 
-    background: rgba(0,0,0,0.2); 
-    margin: 5px 0; 
-    border-radius: 8px; 
-}
+.large-total { font-size: 3.5rem; font-weight: 800; margin: 15px 0; }
+.submit-btn { background: white; color: var(--teal); width: 100%; padding: 20px; border-radius: 15px; border: none; font-weight: 900; font-size: 1.2rem; }
+
+/* Leaderboard */
+.p-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.2); margin: 8px 0; border-radius: 10px; }
 .p-row.is-me { border: 2px solid white; background: rgba(255, 255, 255, 0.3); }
 
-/* History Block */
-.history-block { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; margin-bottom: 10px; text-align: left; border: 1px solid rgba(255,255,255,0.1); }
-.round-label { color: var(--orange); font-weight: bold; font-size: 0.8rem; margin-bottom: 5px; display: block; }
+/* Animations */
+.shake { animation: shake 0.4s both; }
+@keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } }
+.pulse { animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }

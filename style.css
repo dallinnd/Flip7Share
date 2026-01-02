@@ -20,35 +20,44 @@ body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green))
 .resume-btn { background: var(--gold) !important; color: black !important; flex: 1; }
 .delete-icon-btn { background: rgba(255, 68, 68, 0.2); border: 2px solid #ff4444; border-radius: 20px; width: 65px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* CELEBRATION */
+/* CELEBRATION POPUP */
 .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
 .celebration-content { background: white; color: var(--teal); padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popup-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes popup-bounce { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-/* GRIDS & CARDS */
+/* CALCULATOR SPACING FIXES */
+.section-spacer { height: 50px; } 
+
 .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .card-grid button:last-child { grid-column: 2; }
 .card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 15px 0; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
+
 .bust-btn { background: rgba(255,255,255,0.1); border: 2px solid white !important; color: white; margin: 10px 0 25px 0 !important; height: 65px; font-size: 1.3rem; font-weight: 900; }
 .bust-active { background: #ff4444 !important; }
-.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
 .mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 15px; border-radius: 12px; font-weight: bold; }
 .mod-btn-active { background: var(--orange) !important; border-color: white !important; }
 
-/* TOTALS */
-.totals-row { display: flex; gap: 10px; }
+.totals-row { display: flex; gap: 15px; margin-bottom: 25px; }
 .total-box { flex: 1; border-radius: 18px; border: 1px solid rgba(255,255,255,0.2); padding: 12px; text-align: center; background: rgba(0,0,0,0.1); }
 .total-box.grand { background: white; color: var(--teal); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 .total-box div { font-size: 2rem; font-weight: 900; }
 
 .big-btn { width: 100%; padding: 22px; border-radius: 20px; border: none; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; cursor: pointer; }
-.submit-btn { background: var(--orange); color: white; }
+.submit-btn { background: var(--orange); color: white; margin-top: 10px; }
+
+/* LOGS & STATUS */
+.history-list { overflow-y: auto; max-height: 70vh; padding: 10px 5px; }
+.history-block { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 18px; margin-bottom: 15px; text-align: left; }
+.round-label { display: block; color: var(--gold); font-weight: 900; font-size: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 8px; padding-bottom: 4px; }
+.history-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 1rem; }
+
+.p-row { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 8px; border-radius: 12px; align-items: center; }
 .threshold-reached { border: 2px solid var(--gold) !important; background: rgba(255, 215, 0, 0.15) !important; animation: pulse-gold 2s infinite; }
 @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 
-/* REST OF NAV & LISTS */
 .top-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; margin-bottom: 10px; }
 .nav-code { font-weight: 900; font-size: 0.85rem; letter-spacing: 1px; color: white; text-align: center; flex: 1; }
 .nav-btn-themed { background: rgba(255,255,255,0.15); border: 1px solid white; color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; min-width: 70px; }
-.p-row { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 8px; border-radius: 12px; align-items: center; }
 .banner { background: var(--gold); color: black; padding: 10px; border-radius: 10px; font-weight: 900; font-size: 0.8rem; text-align: center; }

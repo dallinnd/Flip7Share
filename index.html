@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip 7 Share</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <div id="welcome-screen" class="screen">
+        <h1>Welcome to Flip 7 Share</h1>
+        <button onclick="showScreen('menu-screen')">Enter Game</button>
+    </div>
+
+    <div id="menu-screen" class="screen" style="display:none;">
+        <button class="host-btn" id="hostBtn">Host a Game</button>
+        <button class="join-btn" id="joinBtn">Join a Game</button>
+    </div>
+
+    <div id="game-screen" class="screen" style="display:none;">
+        <h2 id="roomCodeDisplay">Code: ------</h2>
+        <div id="leaderboard">
+            </div>
+        <div class="controls">
+            <input type="number" id="pointsInput" placeholder="Add points">
+            <button id="submitScoreBtn">Submit Points</button>
+        </div>
+        <button id="endGameBtn" style="display:none;">End & Download</button>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

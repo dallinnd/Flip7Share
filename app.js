@@ -18,7 +18,7 @@ let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-// HAPTIC FEEDBACK HELPER
+// HAPTICS
 const vib = (ms = 15) => { if(navigator.vibrate) navigator.vibrate(ms); };
 
 window.adjustCount = (v) => {
@@ -55,7 +55,7 @@ window.showScreen = (id) => {
 };
 
 window.triggerBust = () => {
-    vib(50); // Stronger vibration for bust
+    vib(50);
     busted = !busted;
     if(busted) { usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; }
     updateUI();
@@ -68,23 +68,41 @@ window.toggleMod = (id, val) => {
     updateUI();
 };
 
-window.closeCelebration = () => {
-    document.getElementById('celebration-overlay').style.display = 'none';
+window.resumeGame = () => { if(gameCode) joinGame(gameCode); };
+
+window.clearSession = () => {
+    if(confirm("Clear saved game session?")) {
+        localStorage.removeItem('f7_code');
+        gameCode = null;
+        document.getElementById('resume-container').style.display = 'none';
+        vib(40);
+    }
 };
 
-window.resumeGame = () => {
-    if(gameCode) joinGame(gameCode);
-};
+window.editCurrentRound = async () => {
+    vib(30);
+    const snap = await get(ref(db, `games/${gameCode}`));
+    const data = snap.val();
+    const myData = data.players[myName];
+    const rNum = data.roundNum;
 
-window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};
+    if (myData && myData.history && myData.history[rNum]) {
+        const saved = myData.history[rNum];
+        usedCards = saved.usedCards || [];
+        bonuses = saved.bonuses || [];
+        mult = saved.mult || 1;
+        busted = saved.busted || false;
+        await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
+        updateUI();
+    }
+};
 
 async function joinGame(code) {
     const pRef = ref(db, `games/${code}/players/${myName}`);
     const snap = await get(pRef);
     if (!snap.exists()) await set(pRef, { name: myName, history: [0], submitted: false });
     onValue(ref(db, `games/${code}`), syncApp);
-    // Force transition to avoid "stuck" home screen
-    window.showScreen('lobby-screen'); 
+    window.showScreen('lobby-screen');
 }
 
 function updateUI() {
@@ -94,17 +112,14 @@ function updateUI() {
     
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
-        vib([50, 30, 50]); // Celebration pulse
+        vib([50, 30, 50]);
         hasCelebrated = true;
     }
     if(!hasF7) hasCelebrated = false;
 
     let roundScore = busted ? 0 : (sum * mult) + totalB + (hasF7 ? 15 : 0);
-    const rDisp = document.getElementById('round-display');
-    const gDisp = document.getElementById('grand-display');
-    
-    if (rDisp) rDisp.innerText = busted ? "BUST" : roundScore;
-    if (gDisp) gDisp.innerText = currentGrandTotal + roundScore;
+    document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
+    document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
     
     document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
     const banner = document.getElementById('flip7-banner');
@@ -117,12 +132,6 @@ function updateUI() {
             if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
         }
     }
-    const m2Btn = document.getElementById('btn-m2');
-    if (m2Btn) m2Btn.className = (mult === 2) ? "mod-btn-active" : "";
-    [2,4,6,8,10].forEach(v => {
-        const b = document.getElementById('btn-p' + v);
-        if(b) b.className = bonuses.includes(v) ? "mod-btn-active" : "";
-    });
 }
 
 function syncApp(snap) {
@@ -130,11 +139,8 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
-    const history = me.history || [0];
-    currentGrandTotal = history.reduce((acc, entry, idx) => {
-        if (idx > 0 && idx < data.roundNum) {
-            return acc + (typeof entry === 'object' ? entry.score : entry);
-        }
+    currentGrandTotal = (me.history || [0]).reduce((acc, entry, idx) => {
+        if (idx > 0 && idx < data.roundNum) return acc + (typeof entry === 'object' ? entry.score : entry);
         return acc;
     }, 0);
     
@@ -151,30 +157,15 @@ function syncApp(snap) {
         document.getElementById('waiting-view').style.display = me.submitted ? 'block' : 'none';
         
         const sorted = playersArr.map(p => ({ 
-            ...p, 
-            total: (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0) 
+            ...p, total: (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0) 
         })).sort((a,b)=>b.total-a.total);
         
         document.getElementById('leaderboard').innerHTML = sorted.map(p => `
             <div class="p-row ${p.total >= 200 ? 'threshold-reached' : ''}">
                 <b>${p.name} ${p.submitted ? '✅' : '⏳'}</b>
-                <span>${p.total} ${p.total >= 200 ? '🔥' : 'pts'}</span>
+                <span>${p.total} pts</span>
             </div>`).join("");
         
-        let hHTML = "";
-        for (let r = data.roundNum; r >= 1; r--) {
-            let rows = playersArr.map(p => {
-                let sObj = p.history && p.history[r];
-                let sVal = sObj ? (typeof sObj === 'object' ? sObj.score : sObj) : 0;
-                return `<div class="history-row"><span>${p.name}</span><b>${sVal}</b></div>`;
-            }).join("");
-            hHTML += `
-                <div class="history-block" onclick="window.revertToRound(${r})">
-                    <span class="round-label">ROUND ${r} ${data.host === myName ? '↩️' : ''}</span>
-                    ${rows}
-                </div>`;
-        }
-        document.getElementById('history-log-container').innerHTML = hHTML;
         document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
     }
     updateUI();
@@ -200,27 +191,14 @@ window.readyForNextRound = async () => {
     await update(ref(db), up);
 };
 
-window.revertToRound = async (r) => {
-    const snap = await get(ref(db, `games/${gameCode}`));
-    const data = snap.val();
-    if (data.host === myName && confirm(`Rewind to Round ${r}?`)) {
-        const up = { [`games/${gameCode}/roundNum`]: r };
-        for (let p in data.players) {
-            up[`games/${gameCode}/players/${p}/history`] = (data.players[p].history || [0]).slice(0, r + 1);
-            up[`games/${gameCode}/players/${p}/submitted`] = false;
-        }
-        await update(ref(db), up);
-    }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) {
         nInput.value = myName;
         nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); };
     }
-    const resBtn = document.getElementById('resume-btn');
-    if(gameCode && resBtn) resBtn.style.display = "block";
+    const resContainer = document.getElementById('resume-container');
+    if(gameCode && resContainer) resContainer.style.display = "flex";
 
     const grid = document.getElementById('cardGrid');
     if (grid) {

@@ -14,12 +14,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// --- APP STATE ---
 let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f7_name') || "";
-let usedCards = [], mult = 1, bonus = 0, busted = false;
+let usedCards = [], bonuses = [], mult = 1, busted = false;
+let targetPlayerCount = 4;
 
-// UI Setup
+// --- INITIALIZATION & KEYBOARD HANDLING ---
 const nInput = document.getElementById('userNameInput');
-if(nInput) { nInput.value = myName; nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); }; }
+if(nInput) {
+    nInput.value = myName;
+    nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); };
+    nInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') nInput.blur(); });
+}
 if(gameCode && myName) document.getElementById('resume-btn').style.display = 'block';
 
 window.showScreen = (id) => {
@@ -27,12 +33,18 @@ window.showScreen = (id) => {
     document.getElementById(id).style.display = 'flex';
 };
 
-// --- Game Logic ---
-window.askPlayerCount = () => {
-    const c = prompt("Total players (including you):", "4");
-    if(c && myName) hostGame(parseInt(c));
+// --- HOST SETUP UI ---
+window.adjustCount = (val) => {
+    targetPlayerCount = Math.max(2, Math.min(10, targetPlayerCount + val));
+    document.getElementById('playerCountDisplay').innerText = targetPlayerCount;
 };
 
+window.hostGameFromUI = () => {
+    if(!myName || myName.trim() === "") { alert("Enter your name first!"); nInput.focus(); return; }
+    hostGame(targetPlayerCount);
+};
+
+// --- CORE GAME LOGIC ---
 async function hostGame(target) {
     gameCode = Math.floor(100000 + Math.random() * 900000);
     localStorage.setItem('f7_code', gameCode);
@@ -41,30 +53,34 @@ async function hostGame(target) {
 }
 
 window.openJoinPopup = () => {
+    if(!myName) return alert("Enter your name first!");
     let c = prompt("6-digit code:");
-    if(c && myName) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
+    if(c) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
 };
 
 window.resumeGame = () => joinGame(gameCode);
 
 async function joinGame(code) {
-    const playerRef = ref(db, `games/${code}/players/${myName}`);
-    const snap = await get(playerRef);
-    if (!snap.exists()) await update(playerRef, { name: myName, history: [0, 0], submitted: false });
+    const pRef = ref(db, `games/${code}/players/${myName}`);
+    const snap = await get(pRef);
+    if (!snap.exists()) await update(pRef, { name: myName, history: [0, 0], submitted: false });
     onValue(ref(db, `games/${code}`), syncApp);
 }
 
-// --- Calculator ---
+// --- CALCULATOR & MULTI-SELECT ---
 window.toggleMod = (id, val) => {
     if(id === 'm2') mult = (mult === 2) ? 1 : 2;
-    else bonus = (bonus === val) ? 0 : val;
+    else {
+        if(bonuses.includes(val)) bonuses = bonuses.filter(b => b !== val);
+        else bonuses.push(val);
+    }
     updateUI();
 };
 
 window.triggerBust = () => { 
-    busted = true; usedCards = []; mult = 1; bonus = 0; 
-    document.getElementById('calc-display').classList.add('shake');
-    setTimeout(() => document.getElementById('calc-display').classList.remove('shake'), 400);
+    busted = true; usedCards = []; bonuses = []; mult = 1; 
+    const disp = document.getElementById('calc-display');
+    disp.classList.add('shake'); setTimeout(() => disp.classList.remove('shake'), 400);
     updateUI(); 
 };
 
@@ -72,74 +88,77 @@ window.triggerBust = () => {
 const grid = document.getElementById('cardGrid');
 if (grid && grid.children.length === 0) {
     for(let i=1; i<=12; i++){
-        let btn = document.createElement('button');
-        btn.id = 'c-'+i; btn.innerText = i;
-        btn.onclick = () => {
-            if(usedCards.includes(i)) usedCards = usedCards.filter(v => v !== i);
-            else usedCards.push(i);
-            updateUI();
-        };
+        let btn = document.createElement('button'); btn.id = 'c-'+i; btn.innerText = i;
+        btn.onclick = () => { if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); else usedCards.push(i); updateUI(); };
         grid.appendChild(btn);
     }
 }
 
 function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
-    let total = busted ? 0 : (sum * mult) + bonus;
-    const disp = document.getElementById('calc-display');
-    disp.innerText = busted ? "BUST!" : total;
-    disp.style.color = busted ? "#ff4444" : "white";
+    let totalB = bonuses.reduce((a, b) => a + b, 0);
+    let total = busted ? 0 : (sum * mult) + totalB;
+    
+    const d = document.getElementById('calc-display');
+    d.innerText = busted ? "BUST!" : total; d.style.color = busted ? "#ff4444" : "white";
+
     for(let i=1; i<=12; i++) {
         const b = document.getElementById('c-'+i);
         if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
     }
+    
+    // Toggle Orange Active States
+    document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
+    [2, 4, 6, 8, 10].forEach(v => {
+        document.getElementById('btn-p' + v).className = bonuses.includes(v) ? "mod-btn-active" : "";
+    });
 }
 
-// --- Round Syncing ---
+// --- SYNC & TIME MACHINE ---
 window.submitRound = async () => {
     let sum = usedCards.reduce((a, b) => a + b, 0);
-    let score = busted ? 0 : (sum * mult) + bonus;
+    let totalB = bonuses.reduce((a, b) => a + b, 0);
+    let score = busted ? 0 : (sum * mult) + totalB;
     const snap = await get(ref(db, `games/${gameCode}`));
     const data = snap.val();
     let h = data.players[myName].history || [0];
     while(h.length <= data.roundNum) h.push(0);
     h[data.roundNum] = score;
     await update(ref(db, `games/${gameCode}/players/${myName}`), { history: h, submitted: true });
-    usedCards = []; mult = 1; bonus = 0; busted = false; updateUI();
+    usedCards = []; bonuses = []; mult = 1; busted = false; updateUI();
 };
 
 window.readyForNextRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const data = snap.val();
     const nextR = data.roundNum + 1;
-    const updates = { [`games/${gameCode}/roundNum`]: nextR };
+    const up = { [`games/${gameCode}/roundNum`]: nextR };
     for (let p in data.players) {
-        updates[`games/${gameCode}/players/${p}/submitted`] = false;
+        up[`games/${gameCode}/players/${p}/submitted`] = false;
         let h = data.players[p].history || [0];
         while(h.length <= nextR) h.push(0);
-        updates[`games/${gameCode}/players/${p}/history`] = h;
+        up[`games/${gameCode}/players/${p}/history`] = h;
     }
-    await update(ref(db), updates);
+    await update(ref(db), up);
 };
 
-window.revertToRound = async (rIdx) => {
-    if (confirm(`Revert to Round ${rIdx}?`)) {
+window.revertToRound = async (r) => {
+    if (confirm(`Rewind to Round ${r}?`)) {
         const snap = await get(ref(db, `games/${gameCode}`));
         const data = snap.val();
-        const updates = { [`games/${gameCode}/roundNum`]: rIdx };
+        const up = { [`games/${gameCode}/roundNum`]: r };
         for (let p in data.players) {
-            updates[`games/${gameCode}/players/${p}/history`] = data.players[p].history.slice(0, rIdx + 1);
-            updates[`games/${gameCode}/players/${p}/submitted`] = false;
+            up[`games/${gameCode}/players/${p}/history`] = data.players[p].history.slice(0, r + 1);
+            up[`games/${gameCode}/players/${p}/submitted`] = false;
         }
-        await update(ref(db), updates);
-        showScreen('game-screen');
+        await update(ref(db), up); showScreen('game-screen');
     }
 };
 
 function syncApp(snap) {
-    const data = snap.val(); if(!data) return;
+    const data = snap.val(); if(!data) { localStorage.removeItem('f7_code'); location.reload(); return; }
     const players = Object.values(data.players || {});
-    const me = data.players[myName];
+    const me = data.players[myName]; if(!me) return;
 
     if (data.status === "waiting") {
         showScreen('lobby-screen');
@@ -155,25 +174,20 @@ function syncApp(snap) {
     let lb = document.getElementById('leaderboard'); lb.innerHTML = "";
     players.map(p => ({ ...p, total: (p.history || []).reduce((a,b)=>a+b, 0) })).sort((a,b)=>b.total-a.total).forEach(p => {
         lb.innerHTML += `<div class="p-row ${p.name === myName ? 'is-me' : ''}"><div><b>${p.name} ${p.submitted ? '✅' : '⏳'}</b><br><small>Round: +${p.history[data.roundNum] || 0}</small></div><div style="font-size:1.5rem;font-weight:800;">${p.total}</div></div>`;
+        if(p.total >= 200) alert(p.name + " WINS!");
     });
 
     // History
     let hLog = document.getElementById('history-log-container'); hLog.innerHTML = "";
     for (let r = data.roundNum; r >= 1; r--) {
-        let rHTML = `<div class="history-block" ${data.host === myName ? `onclick="revertToRound(${r})"` : ''}><span class="round-label">Round ${r} ${data.host === myName ? '↩️' : ''}</span>`;
-        players.forEach(p => { rHTML += `<div style="display:flex;justify-content:space-between;font-size:0.8rem;"><span>${p.name}</span><span>${p.history[r] || 0}</span></div>`; });
-        hLog.innerHTML += rHTML + `</div>`;
+        let rH = `<div class="history-block" ${data.host === myName ? `onclick="revertToRound(${r})"` : ''}><span class="round-label">Round ${r} ${data.host === myName ? '↩️' : ''}</span>`;
+        players.forEach(p => { rH += `<div style="display:flex;justify-content:space-between;font-size:0.8rem;"><span>${p.name}</span><span>${p.history[r] || 0}</span></div>`; });
+        hLog.innerHTML += rH + `</div>`;
     }
 
-    // Toggle View
-    if (me && me.submitted) {
-        document.getElementById('calc-view').style.display = 'none';
-        document.getElementById('waiting-view').style.display = 'block';
-    } else {
-        document.getElementById('calc-view').style.display = 'block';
-        document.getElementById('waiting-view').style.display = 'none';
-    }
-    document.getElementById('nextRoundBtn').style.display = (data.host === myName && players.every(p => p.submitted)) ? 'block' : 'none';
+    if (me.submitted) { document.getElementById('calc-view').style.display = 'none'; document.getElementById('waiting-view').style.display = 'block'; }
+    else { document.getElementById('calc-view').style.display = 'block'; document.getElementById('waiting-view').style.display = 'none'; }
+    document.getElementById('nextRoundBtn').style.display = (data.host === myName && players.every(p=>p.submitted)) ? 'block' : 'none';
 }
 
-window.leaveGame = () => { localStorage.removeItem('f7_code'); location.reload(); };
+window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};

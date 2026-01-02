@@ -10,17 +10,22 @@
 <body>
     <div id="home-screen" class="screen">
         <h1>Flip 7 Share</h1>
-        
         <div class="setup-section">
             <p>Enter Player Name:</p>
             <input type="text" id="userNameInput" placeholder="Tap to type name..." class="name-input-field">
         </div>
-
         <div class="action-section">
-            <button class="big-btn host-btn" onclick="hostGame()">HOST NEW GAME</button>
+            <button class="big-btn host-btn" onclick="askPlayerCount()">HOST NEW GAME</button>
             <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
             <button id="resume-btn" class="resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
         </div>
+    </div>
+
+    <div id="lobby-screen" class="screen" style="display:none;">
+        <h2 id="roomDisplayLobby">Room: ------</h2>
+        <div id="lobby-status">Joined: 0 / 0</div>
+        <div id="player-list" class="player-list"></div>
+        <p class="pulse">Waiting for everyone to join...</p>
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">

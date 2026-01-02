@@ -1,38 +1,95 @@
-:root { --teal: #008080; --green: #2e8b57; --orange: #ff8c00; --gold: #ffd700; }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Flip 7 Share Pro</title>
+    <meta name="theme-color" content="#008080">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="celebration-overlay" class="overlay" style="display:none;" onclick="window.closeCelebration()">
+        <div class="celebration-content">
+            <div class="emoji-bounce">🃏</div>
+            <h1>FLIP 7!</h1>
+            <h2 class="bonus-text">+15 POINTS</h2>
+            <p>Tap to continue</p>
+        </div>
+    </div>
 
-body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); color: white; font-family: sans-serif; min-height: 100vh; display: flex; justify-content: center; }
+    <div id="home-screen" class="screen">
+        <h1>Flip 7 Share</h1>
+        <div class="input-group">
+            <label>PLAYER NAME</label>
+            <input type="text" id="userNameInput" placeholder="Enter name..." class="name-input-field">
+        </div>
+        
+        <div class="host-card">
+            <label>NEW GAME SETUP</label>
+            <div class="counter-row">
+                <button class="counter-btn" onclick="window.adjustCount(-1)">−</button>
+                <div id="playerCountDisplay" class="count-display">4</div>
+                <button class="counter-btn" onclick="window.adjustCount(1)">+</button>
+            </div>
+            <div style="height: 20px;"></div> <button class="big-btn host-btn" onclick="window.hostGameFromUI()">HOST NEW GAME</button>
+        </div>
 
-.screen { width: 95%; max-width: 450px; margin: 15px auto; padding: 25px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 30px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        <div class="home-footer">
+            <button class="big-btn join-btn" onclick="window.openJoinPopup()">JOIN EXISTING</button>
+            <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="window.resumeGame()">RESUME GAME</button>
+        </div>
+    </div>
 
-/* Buttons & Toggles */
-.big-btn { width: 100%; padding: 20px; border-radius: 18px; border: none; font-weight: 900; font-size: 1.2rem; cursor: pointer; text-transform: uppercase; }
-.bust-btn { background: rgba(255,255,255,0.1); border: 2px solid white !important; color: white; margin: 10px 0 35px 0 !important; }
-.bust-active { background: #ff4444 !important; border-color: white !important; }
+    <div id="lobby-screen" class="screen" style="display:none;">
+        <h2 id="roomDisplayLobby">Game: ------</h2>
+        <div id="lobby-status" class="lobby-count">Joined: 0 / 0</div>
+        <div id="player-list" class="player-list"></div>
+        <button class="nav-btn-themed" onclick="window.leaveGame()">Leave Lobby</button>
+    </div>
 
-.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 12px; border-radius: 12px; font-weight: bold; }
+    <div id="game-screen" class="screen" style="display:none;">
+        <div class="top-nav">
+            <button class="nav-btn-themed" onclick="window.showScreen('home-screen')">HOME</button>
+            <div id="roomCodeDisplay" class="nav-code">CODE: ------</div>
+            <button class="nav-btn-themed" onclick="window.showScreen('history-screen')">LOGS</button>
+        </div>
+        <div class="main-scroll-area">
+            <div id="calc-view">
+                <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS!</div>
+                <div class="card-grid" id="cardGrid"></div> <button class="big-btn bust-btn" id="bust-toggle-btn" onclick="window.triggerBust()">BUST</button>
+                <div class="mod-grid">
+                    <button id="btn-m2" onclick="window.toggleMod('m2', 2)">×2</button>
+                    <button id="btn-p2" onclick="window.toggleMod('p2', 2)">+2</button>
+                    <button id="btn-p4" onclick="window.toggleMod('p4', 4)">+4</button>
+                    <button id="btn-p6" onclick="window.toggleMod('p6', 6)">+6</button>
+                    <button id="btn-p8" onclick="window.toggleMod('p8', 8)">+8</button>
+                    <button id="btn-p10" onclick="window.toggleMod('p10', 10)">+10</button>
+                </div>
+                <div class="totals-row">
+                    <div class="total-box"><small>ROUND</small><div id="round-display">0</div></div>
+                    <div class="total-box grand"><small>GRAND</small><div id="grand-display">0</div></div>
+                </div>
+                <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
+            </div>
+            <div id="waiting-view" style="display:none;">
+                <h2>Leaderboard</h2>
+                <div id="leaderboard"></div>
+                <button id="nextRoundBtn" class="big-btn next-btn" style="display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
+            </div>
+        </div>
+    </div>
 
-/* Active State - Crucial Fix */
-.mod-btn-active, .mod-grid button.mod-btn-active { background: var(--orange) !important; border-color: white !important; box-shadow: 0 0 10px var(--orange); }
+    <div id="history-screen" class="screen" style="display:none;">
+        <div class="top-nav">
+            <button class="nav-btn-themed" onclick="window.showScreen('game-screen')">← BACK</button>
+            <div class="nav-code">ROUND LOGS</div>
+            <div style="width:50px;"></div>
+        </div>
+        <div id="history-log-container" class="history-list"></div>
+    </div>
 
-/* Totals */
-.totals-row { display: flex; gap: 10px; }
-.total-box { flex: 1; border-radius: 18px; border: 1px solid rgba(255,255,255,0.2); padding: 12px; text-align: center; }
-.total-box.grand { background: white; color: var(--teal); }
-.total-box div { font-size: 2.1rem; font-weight: 900; }
-
-/* History */
-.history-block { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-.history-row { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.9rem; }
-.round-label { color: var(--gold); font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); display: block; margin-bottom: 5px; }
-
-/* Home / Counter */
-.counter-row { display: flex; justify-content: center; align-items: center; gap: 20px; }
-.counter-btn { width: 50px; height: 50px; border-radius: 50%; border: none; font-size: 1.5rem; background: white; color: var(--teal); font-weight: bold; }
-.count-display { font-size: 2.5rem; font-weight: 900; min-width: 50px; text-align: center; }
-.name-input-field { width: 100%; padding: 15px; border-radius: 12px; border: none; text-align: center; font-weight: bold; font-size: 1.1rem; }
-
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center; }
-.top-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-.nav-btn-themed { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; }
+    <script type="module" src="app.js"></script>
+</body>
+</html>

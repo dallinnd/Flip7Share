@@ -10,49 +10,42 @@ body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green))
 .input-group label { display: block; font-weight: 900; opacity: 0.7; letter-spacing: 2px; font-size: 0.8rem; margin-top: 10px; }
 .home-spacer { height: 40px; } 
 
-.host-card { background: rgba(255,255,255,0.05); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; }
-.counter-row { display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 25px; }
-.counter-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 2rem; background: white; color: var(--teal); font-weight: bold; cursor: pointer; }
-.count-display { font-size: 3rem; font-weight: 900; min-width: 60px; text-align: center; }
+/* FIXED: Counter Row Layout */
+.host-card { background: rgba(255,255,255,0.05); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; width: 100%; }
+.counter-row { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 25px; width: 100%; }
+.counter-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 2rem; background: white; color: var(--teal); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.count-display { font-size: 3.5rem; font-weight: 900; min-width: 80px; text-align: center; }
 
-/* LOGS (HISTORY) */
+/* CELEBRATION OVERLAY */
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+.celebration-content { background: white; color: var(--teal); padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popup-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-width: 80%; }
+@keyframes popup-bounce { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* REST OF CSS REMAINS THE SAME */
 .history-list { overflow-y: auto; max-height: 70vh; padding: 10px 5px; }
-.history-block { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 18px; margin-bottom: 15px; text-align: left; transition: transform 0.1s; }
-.history-block:active { transform: scale(0.98); }
+.history-block { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 18px; margin-bottom: 15px; text-align: left; }
 .round-label { display: block; color: var(--gold); font-weight: 900; font-size: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 8px; padding-bottom: 4px; }
 .history-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 1rem; }
-
-/* SPACING */
 .section-spacer { height: 35px; } 
-
-/* GRIDS */
 .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .card-grid button:last-child { grid-column: 2; }
 .card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 15px 0; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
-
 .bust-btn { background: rgba(255,255,255,0.1); border: 2px solid white !important; color: white; margin: 10px 0 25px 0 !important; height: 65px; font-size: 1.3rem; font-weight: 900; }
 .bust-active { background: #ff4444 !important; }
 .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 15px; border-radius: 12px; font-weight: bold; }
 .mod-btn-active { background: var(--orange) !important; border-color: white !important; }
-
-/* TOTALS & NAV */
 .totals-row { display: flex; gap: 10px; }
 .total-box { flex: 1; border-radius: 18px; border: 1px solid rgba(255,255,255,0.2); padding: 12px; text-align: center; background: rgba(0,0,0,0.1); }
 .total-box.grand { background: white; color: var(--teal); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 .total-box div { font-size: 2rem; font-weight: 900; }
-
 .top-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; margin-bottom: 10px; }
 .nav-code { font-weight: 900; font-size: 0.85rem; letter-spacing: 1px; color: white; text-align: center; flex: 1; }
-.nav-btn-themed { background: rgba(255,255,255,0.15); border: 1px solid white; color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; min-width: 70px; }
-
-.big-btn { width: 100%; padding: 22px; border-radius: 20px; border: none; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; cursor: pointer; }
+.nav-btn-themed { background: rgba(255,255,255,0.15); border: 1px solid white; color: white; padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; min-width: 70px; }
+.big-btn { width: 100%; padding: 22px; border-radius: 20px; border: none; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; }
 .submit-btn { background: var(--orange); color: white; }
 .next-btn { background: var(--teal) !important; color: white; border: 2px solid white !important; }
-
 .p-row { display: flex; justify-content: space-between; padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 8px; border-radius: 12px; align-items: center; }
 .threshold-reached { border: 2px solid var(--gold) !important; background: rgba(255, 215, 0, 0.15) !important; animation: pulse-gold 2s infinite; }
 @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
-
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
 .banner { background: var(--gold); color: black; padding: 10px; border-radius: 10px; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px; text-align: center; }

@@ -25,7 +25,7 @@ window.adjustCount = (v) => {
 };
 
 window.hostGameFromUI = async () => {
-    if(!myName) return alert("Enter name first!");
+    if(!myName) return alert("Enter name!");
     gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     localStorage.setItem('f7_code', gameCode);
     await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: targetPlayerCount, status: "waiting", roundNum: 1 });
@@ -58,7 +58,7 @@ window.closeCelebration = () => document.getElementById('celebration-overlay').s
 window.resumeGame = () => joinGame(gameCode);
 window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};
 
-// LOGIC
+// CORE LOGIC
 async function joinGame(code) {
     const pRef = ref(db, `games/${code}/players/${myName}`);
     const snap = await get(pRef);
@@ -131,9 +131,9 @@ function syncApp(snap) {
         let hHTML = "";
         for (let r = data.roundNum; r >= 1; r--) {
             let rows = playersArr.map(p => {
-                let scoreObj = p.history && p.history[r];
-                let scoreVal = scoreObj ? (typeof scoreObj === 'object' ? scoreObj.score : scoreObj) : 0;
-                return `<div style="display:flex; justify-content:space-between; margin-top:5px; font-size:0.9rem;"><span>${p.name}</span><b>${scoreVal}</b></div>`;
+                let sObj = p.history && p.history[r];
+                let sVal = sObj ? (typeof sObj === 'object' ? sObj.score : sObj) : 0;
+                return `<div style="display:flex; justify-content:space-between; margin-top:5px; font-size:0.8rem;"><span>${p.name}</span><b>${sVal}</b></div>`;
             }).join("");
             hHTML += `<div class="history-block" onclick="window.revertToRound(${r})"><span style="color:var(--gold); font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); display:block; margin-bottom:5px;">ROUND ${r}</span>${rows}</div>`;
         }
@@ -188,16 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const grid = document.getElementById('cardGrid');
     if (grid) {
-        grid.innerHTML = ""; // CLEAN START
+        grid.innerHTML = "";
         for(let i=0; i<=12; i++){
-            let btn = document.createElement('button'); 
-            btn.innerText = i;
-            btn.onclick = () => { 
-                busted = false; 
-                if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
-                else if(usedCards.length < 7) usedCards.push(i); 
-                updateUI(); 
-            };
+            let btn = document.createElement('button'); btn.innerText = i;
+            btn.onclick = () => { busted = false; if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); else if(usedCards.length < 7) usedCards.push(i); updateUI(); };
             grid.appendChild(btn);
         }
     }

@@ -1,64 +1,51 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Beautiful Teal to Green Gradient */
-    background: linear-gradient(135deg, #008080 0%, #2e8b57 100%);
-    color: white;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flip 7 Share</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div id="welcome-screen" class="screen">
+        <h1>Flip 7 Share</h1>
+        <div class="name-box" onclick="activateNameEdit()">
+            <input type="text" id="userNameInput" value="Player1" readonly>
+            <svg class="edit-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </div>
+        <button class="main-btn" onclick="showScreen('menu-screen')">Start Game</button>
+    </div>
 
-.screen {
-    width: 90%;
-    max-width: 450px;
-    padding: 30px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.1); /* Subtle glass effect */
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-}
+    <div id="menu-screen" class="screen" style="display:none;">
+        <button class="host-btn" onclick="hostGame()">Host a Game</button>
+        <button class="join-btn" onclick="openJoinPopup()">Join a Game</button>
+    </div>
 
-/* The White Name Box */
-.name-box {
-    position: relative;
-    background: white;
-    border-radius: 12px;
-    padding: 5px 15px;
-    display: flex;
-    align-items: center;
-    margin: 20px auto;
-    width: 80%;
-}
+    <div id="game-screen" class="screen" style="display:none;">
+        <div id="host-controls" style="display:none;">
+            <button class="round-nav next" onclick="changeRound(1)">Next Round</button>
+            <button class="round-nav prev" onclick="changeRound(-1)">Prev Round</button>
+        </div>
+        <h2 id="roomCodeDisplay">Room: ------</h2>
+        
+        <div class="calculator">
+            <div id="calc-display">Total: 0</div>
+            <div class="card-grid" id="cardGrid">
+                </div>
+            <div class="mod-grid">
+                <button onclick="addModifier(2)">+2</button>
+                <button onclick="addModifier(4)">+4</button>
+                <button onclick="addModifier(6)">+6</button>
+                <button onclick="setX2()" class="x2-btn">×2</button>
+                <button onclick="triggerBust()" class="bust-btn">BUST</button>
+            </div>
+            <button class="submit-btn" onclick="submitRound()">Submit Round</button>
+        </div>
 
-#userNameInput {
-    border: none;
-    background: transparent;
-    font-size: 1.2rem;
-    color: #008080;
-    width: 100%;
-    padding: 10px 0;
-    outline: none;
-}
+        <div id="leaderboard"></div>
+    </div>
 
-/* The Teal Pencil Icon */
-.edit-icon {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    fill: #008080; /* Teal color */
-    margin-left: 10px;
-}
-
-/* Card Buttons Styles */
-.card-grid button {
-    background: #ffffff22;
-    border: 1px solid white;
-    color: white;
-    border-radius: 8px;
-    padding: 15px;
-    font-weight: bold;
-}
+    <script type="module" src="app.js"></script>
+</body>
+</html>

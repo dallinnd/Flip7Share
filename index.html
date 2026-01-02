@@ -69,15 +69,20 @@
                 </div>
                 <div class="section-spacer"></div>
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
+                
                 <div id="target-leader-banner" class="banner threshold-reached" style="display:none; color: black; margin-top: 15px;">
                     🏆 <span id="leader-name-display">NAME</span>: <span id="leader-score-display">0</span> pts
                 </div>
             </div>
+
             <div id="waiting-view" style="display:none;">
                 <h2>Leaderboard</h2>
                 <div id="leaderboard"></div>
                 <div class="section-spacer"></div> 
-                <div id="host-round-controls" style="display:none; flex-direction:column; gap:10px;">
+                
+                <button class="big-btn edit-score-btn" onclick="window.editCurrentRound()">✎ FIX MY SCORE</button>
+                
+                <div id="host-round-controls" style="display:none; flex-direction:column; gap:10px; margin-top:15px;">
                     <button id="nextRoundBtn" class="big-btn next-btn" onclick="window.readyForNextRound()">NEXT ROUND</button>
                     <button id="rewindBtn" class="big-btn rewind-btn" onclick="window.rewindOneRound()">↺ REWIND ROUND</button>
                 </div>

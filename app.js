@@ -20,7 +20,8 @@ let targetPlayerCount = 4, hasCelebrated = false;
 
 window.adjustCount = (v) => {
     targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + v));
-    document.getElementById('playerCountDisplay').innerText = targetPlayerCount;
+    const disp = document.getElementById('playerCountDisplay');
+    if (disp) disp.innerText = targetPlayerCount;
 };
 
 window.hostGameFromUI = async () => {
@@ -112,7 +113,6 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
-    // FIX: currentGrandTotal for the calculator should only sum rounds BEFORE the current roundNum
     const history = me.history || [0];
     currentGrandTotal = history.slice(0, data.roundNum).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0);
     
@@ -120,7 +120,7 @@ function syncApp(snap) {
         window.showScreen('lobby-screen');
         document.getElementById('roomDisplayLobby').innerText = "Game: " + gameCode;
         document.getElementById('lobby-status').innerText = `Joined: ${playersArr.length} / ${data.targetCount}`;
-        document.getElementById('player-list').innerHTML = playersArr.map(p => `<div class="p-tag">${p.name}</div>`).join("");
+        document.getElementById('player-list').innerHTML = playersArr.map(p => `<div class="p-row"><b>${p.name}</b></div>`).join("");
         if(playersArr.length >= data.targetCount && data.host === myName) update(ref(db, `games/${gameCode}`), { status: "active" });
     } else {
         window.showScreen('game-screen');
@@ -139,6 +139,7 @@ function syncApp(snap) {
                 <span>${p.total} ${p.total >= 200 ? '🔥' : 'pts'}</span>
             </div>`).join("");
         
+        // --- IMPROVED LOG UI LOGIC ---
         let hHTML = "";
         for (let r = data.roundNum; r >= 1; r--) {
             let rows = playersArr.map(p => {
@@ -146,7 +147,11 @@ function syncApp(snap) {
                 let sVal = sObj ? (typeof sObj === 'object' ? sObj.score : sObj) : 0;
                 return `<div class="history-row"><span>${p.name}</span><b>${sVal}</b></div>`;
             }).join("");
-            hHTML += `<div class="history-block" onclick="window.revertToRound(${r})"><span class="round-label">ROUND ${r} ${data.host === myName ? '↩️' : ''}</span>${rows}</div>`;
+            hHTML += `
+                <div class="history-block" onclick="window.revertToRound(${r})">
+                    <span class="round-label">ROUND ${r} ${data.host === myName ? '↩️' : ''}</span>
+                    ${rows}
+                </div>`;
         }
         document.getElementById('history-log-container').innerHTML = hHTML;
         document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
@@ -159,7 +164,7 @@ window.submitRound = async () => {
     const rNum = snap.val().roundNum;
     const score = busted ? 0 : (usedCards.reduce((a,b)=>a+b, 0) * mult) + bonuses.reduce((a,b)=>a+b, 0) + (usedCards.length === 7 ? 15 : 0);
     const roundState = { score, usedCards: [...usedCards], bonuses: [...bonuses], mult, busted };
-    let h = snap.val().players[myName].history || [0];
+    let h = (await get(ref(db, `games/${gameCode}/players/${myName}`))).val().history || [0];
     h[rNum] = roundState;
     await update(ref(db, `games/${gameCode}/players/${myName}`), { history: h, submitted: true });
     usedCards = []; bonuses = []; mult = 1; busted = false; updateUI();
@@ -207,4 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.appendChild(btn);
         }
     }
+    const countDisp = document.getElementById('playerCountDisplay');
+    if(countDisp) countDisp.innerText = targetPlayerCount;
 });

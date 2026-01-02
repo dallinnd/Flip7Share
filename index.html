@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flip 7 Share</title>
+    <title>Flip 7 Share Pro</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div id="home-screen" class="screen">
@@ -23,6 +22,7 @@
 
     <div id="lobby-screen" class="screen" style="display:none;">
         <h2 id="roomDisplayLobby">Game: ------</h2>
+        <div id="host-controls-lobby"></div>
         <div id="lobby-status">Joined: 0 / 0</div>
         <div id="player-list" class="player-list"></div>
         <p class="pulse">Waiting for everyone to join...</p>
@@ -55,11 +55,22 @@
         <div id="waiting-view" style="display:none;">
             <div class="summary-header">
                 <button class="small-back-btn" onclick="leaveGame()">✕ Leave</button>
-                <h2>Round Summary</h2>
+                <h2>Leaderboard</h2>
+                <button class="small-back-btn" onclick="showScreen('history-screen')">📜 History</button>
             </div>
             <div id="leaderboard"></div>
+            <div id="host-end-game-container"></div>
             <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
         </div>
+    </div>
+
+    <div id="history-screen" class="screen" style="display:none;">
+        <div class="summary-header">
+            <button class="small-back-btn" onclick="showScreen('game-screen')">← Back</button>
+            <h2>Round Logs</h2>
+        </div>
+        <div id="history-log-container"></div>
+        <p style="font-size: 0.7rem; opacity: 0.5; margin-top: 20px;">Hosts can tap a round to rewind the game.</p>
     </div>
 
     <script type="module" src="app.js"></script>

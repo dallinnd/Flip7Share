@@ -77,7 +77,10 @@
                 <h2>Leaderboard</h2>
                 <div id="leaderboard"></div>
                 <div class="section-spacer"></div> 
-                <button id="nextRoundBtn" class="big-btn next-btn" style="display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
+                <div id="host-round-controls" style="display:none; flex-direction:column; gap:10px;">
+                    <button id="nextRoundBtn" class="big-btn next-btn" onclick="window.readyForNextRound()">NEXT ROUND</button>
+                    <button id="rewindBtn" class="big-btn rewind-btn" onclick="window.rewindOneRound()">↺ REWIND ROUND</button>
+                </div>
             </div>
         </div>
     </div>

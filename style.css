@@ -2,31 +2,33 @@
 body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); color: white; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; overflow: hidden; }
 .screen { width: 90%; max-width: 420px; text-align: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
-/* Home Screen */
+/* Identity & Lobby */
 .setup-section { margin-bottom: 25px; text-align: left; }
 .name-input-field { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 1.2rem; color: var(--teal); outline: none; box-sizing: border-box; }
 .big-btn { width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
 .host-btn { background: white; color: var(--teal); }
 .join-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
+.leave-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 10px 20px; border-radius: 8px; margin-top: 20px; }
 
 /* Navigation */
 .top-nav { display: flex; justify-content: center; position: relative; height: 40px; margin-bottom: 10px; }
-.home-icon-wrapper { position: absolute; left: 0; top: 0; cursor: pointer; padding: 5px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; }
+.home-icon-wrapper { position: absolute; left: 0; top: 0; cursor: pointer; padding: 5px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; }
 .nav-svg { width: 24px; height: 24px; fill: white; }
 .top-right-game { position: absolute; right: 0; top: 5px; font-size: 0.8rem; font-weight: bold; opacity: 0.8; }
 
-/* Calculator */
+/* Calculator Grid */
 .card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
 .card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 12px 5px; border-radius: 8px; font-weight: bold; }
 .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
 .mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; }
 .bust-btn { background: #ff4444 !important; }
 
+/* Large Display */
 .large-total { font-size: 3.5rem; font-weight: 800; margin: 15px 0; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 .submit-btn { background: white; color: var(--teal); width: 100%; padding: 20px; border-radius: 15px; border: none; font-weight: 900; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
-/* Results & Lobby */
-.player-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px 0; }
-.p-tag { background: white; color: var(--teal); padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 0.8rem; }
+/* Results */
 .p-row { display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); margin: 5px 0; border-radius: 8px; }
 .next-round-btn { background: var(--orange); color: white; border: none; padding: 22px; width: 100%; border-radius: 12px; font-size: 1.4rem; font-weight: bold; margin-top: 20px; }
+.summary-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+.small-back-btn { background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; }

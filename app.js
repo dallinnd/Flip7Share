@@ -1,96 +1,130 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue, update, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyConuxhGCtGvJaa6TZ1bkUvlOhhTdyTgZE",
-    authDomain: "flip7share.firebaseapp.com",
-    databaseURL: "https://flip7share-default-rtdb.firebaseio.com",
-    projectId: "flip7share",
-    storageBucket: "flip7share.firebasestorage.app",
-    messagingSenderId: "467127126520",
-    appId: "1:467127126520:web:0646f4fc19352eaa11ee0d"
-};
-
+const firebaseConfig = { /* ... your config ... */ };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let gameCode, isHost = false, myName = localStorage.getItem('f7name') || "Player";
-let runningSum = 0, multiplier = 1, modifiers = 0, busted = false;
+let gameCode = localStorage.getItem('f7_code');
+let myName = localStorage.getItem('f7_name') || "Player";
+let usedCards = JSON.parse(localStorage.getItem('f7_used') || "[]");
+let multipliers = 1, bonus = 0, isBusted = false;
 
-// UI Setup
+document.getElementById('userNameInput').value = myName;
+if(gameCode) document.getElementById('resume-btn').style.display = 'block';
+
+// Navigation & Persistence
 window.showScreen = (id) => {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.getElementById(id).style.display = 'block';
 };
 
-// Name Edit with Keyboard Activation
 window.activateNameEdit = () => {
     const input = document.getElementById('userNameInput');
-    input.readOnly = false;
-    input.focus();
-    input.onblur = () => {
-        input.readOnly = true;
-        myName = input.value;
-        localStorage.setItem('f7name', myName);
-    };
+    input.readOnly = false; input.focus();
+    input.onblur = () => { input.readOnly = true; myName = input.value; localStorage.setItem('f7_name', myName); };
 };
 
-// Generate Card Buttons 1-12
+// --- Calculator Logic ---
 const grid = document.getElementById('cardGrid');
-for(let i=1; i<=12; i++) {
+for(let i=1; i<=12; i++){
     let btn = document.createElement('button');
-    btn.innerText = i;
-    btn.onclick = () => { runningSum += i; updateCalc(); };
+    btn.id = 'card-'+i; btn.innerText = i;
+    btn.onclick = () => toggleCard(i);
     grid.appendChild(btn);
 }
 
-// Calc Logic
-window.setX2 = () => { multiplier = 2; updateCalc(); };
-window.addModifier = (v) => { modifiers += v; updateCalc(); };
-window.triggerBust = () => { busted = true; runningSum = 0; multiplier = 1; modifiers = 0; updateCalc(); };
-function updateCalc() {
-    const total = busted ? 0 : (runningSum * multiplier) + modifiers;
-    document.getElementById('calc-display').innerText = busted ? "BUST!" : `Total: ${total}`;
+function toggleCard(val) {
+    if(usedCards.includes(val)) usedCards = usedCards.filter(v => v !== val);
+    else usedCards.push(val);
+    updateUI();
 }
 
-// Firebase Logic
+window.toggleMod = (id, val, mult) => {
+    if(id === 'm2') multipliers = (multipliers === 2) ? 1 : 2;
+    else bonus = (bonus === val) ? 0 : val;
+    updateUI();
+};
+
+function updateUI() {
+    let sum = usedCards.reduce((a, b) => a + b, 0);
+    let total = isBusted ? 0 : (sum * multipliers) + bonus;
+    document.getElementById('calc-display').innerText = isBusted ? "BUST!" : "Total: " + total;
+    
+    // Color Cards: Teal if used, Transparent if not
+    for(let i=1; i<=12; i++) {
+        document.getElementById('card-'+i).style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
+    }
+    localStorage.setItem('f7_used', JSON.stringify(usedCards));
+}
+
+// --- Firebase Flow ---
 window.hostGame = async () => {
     gameCode = Math.floor(100000 + Math.random() * 900000);
-    isHost = true;
-    await set(ref(db, 'games/' + gameCode), { host: myName, round: 1 });
-    document.getElementById('host-controls').style.display = 'flex';
+    localStorage.setItem('f7_code', gameCode);
+    await set(ref(db, 'games/' + gameCode), { host: myName, round: 1, players: {} });
     joinGame(gameCode);
 };
 
 window.openJoinPopup = () => {
-    const c = prompt("Enter 6-digit code:");
-    if(c) joinGame(c);
+    let c = prompt("Enter 6-digit Code:");
+    if(c) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
 };
 
-async function joinGame(c) {
-    gameCode = c;
-    await update(ref(db, `games/${gameCode}/players/${myName}`), { name: myName, grandTotal: 0 });
-    onValue(ref(db, `games/${gameCode}`), syncGame);
+window.resumeGame = () => joinGame(gameCode);
+
+async function joinGame(code) {
+    await update(ref(db, `games/${code}/players/${myName}`), { name: myName, grandTotal: 0, submitted: false });
+    onValue(ref(db, `games/${code}`), syncGame);
     showScreen('game-screen');
 }
 
-window.submitRound = () => {
-    const total = busted ? 0 : (runningSum * multiplier) + modifiers;
-    update(ref(db, `games/${gameCode}/players/${myName}`), { 
-        lastRound: total, 
-        grandTotal: increment(total) 
+window.submitRound = async () => {
+    let sum = usedCards.reduce((a, b) => a + b, 0);
+    let total = isBusted ? 0 : (sum * multipliers) + bonus;
+    
+    await update(ref(db, `games/${gameCode}/players/${myName}`), { 
+        lastScore: total, 
+        grandTotal: increment(total),
+        submitted: true 
     });
-    triggerBust(); busted = false; updateCalc();
+    
+    document.getElementById('calc-view').style.display = 'none';
+    document.getElementById('waiting-view').style.display = 'block';
 };
 
 function syncGame(snap) {
     const data = snap.val();
     if(!data) return;
-    document.getElementById('roomCodeDisplay').innerText = `Room: ${gameCode} | Round: ${data.round}`;
+    
+    const players = Object.values(data.players);
+    const allSubmitted = players.every(p => p.submitted === true);
+    
+    // Update Leaderboard
     let lb = document.getElementById('leaderboard');
     lb.innerHTML = "";
-    Object.values(data.players || {}).forEach(p => {
-        lb.innerHTML += `<div>${p.name}: <b>${p.grandTotal}</b></div>`;
-        if(p.grandTotal >= 200) alert(p.name + " WINS!");
+    players.sort((a,b) => b.grandTotal - a.grandTotal).forEach(p => {
+        lb.innerHTML += `<div class="p-row"><span>${p.name}</span><span>${p.grandTotal}</span></div>`;
     });
+
+    // Show Orange Button if everyone is done
+    document.getElementById('nextRoundBtn').style.display = allSubmitted ? 'block' : 'none';
+    
+    // If round has reset (Host triggered), go back to calculator
+    if(players.every(p => p.submitted === false)) {
+        resetLocalRound();
+    }
 }
+
+function resetLocalRound() {
+    usedCards = []; multipliers = 1; bonus = 0; isBusted = false;
+    localStorage.setItem('f7_used', "[]");
+    updateUI();
+    document.getElementById('calc-view').style.display = 'block';
+    document.getElementById('waiting-view').style.display = 'none';
+}
+
+window.readyForNextRound = async () => {
+    // Each player resets their own 'submitted' status to false to clear the leaderboard lock
+    await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
+};

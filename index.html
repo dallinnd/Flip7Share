@@ -35,7 +35,6 @@
         <div id="lobby-status" style="font-weight: bold; margin-bottom: 10px;">Joined: 0 / 0</div>
         <div id="player-list" class="player-list"></div>
         <p class="pulse">Waiting for everyone to join...</p>
-        <div id="host-controls-lobby"></div>
         <button class="leave-btn" onclick="leaveGame()">Leave Lobby</button>
     </div>
 
@@ -53,6 +52,9 @@
 
         <div class="main-scroll-area">
             <div id="calc-view">
+                <div id="flip7-banner" class="flip7-container" style="display:none;">
+                    You got Flip7! +15 Points
+                </div>
                 <div class="card-grid" id="cardGrid"></div>
                 <div class="mod-grid">
                     <button id="btn-m2" onclick="toggleMod('m2', 0)">×2</button>
@@ -71,7 +73,7 @@
                 <h2>Leaderboard</h2>
                 <div id="leaderboard"></div>
                 <div id="host-end-game-container"></div>
-                <button id="nextRoundBtn" class="next-round-btn big-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
+                <button id="nextRoundBtn" class="big-btn next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
             </div>
         </div>
     </div>

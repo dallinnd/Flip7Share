@@ -26,16 +26,16 @@
 
         <div class="action-section">
             <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
-            <button id="resume-btn" class="resume-btn big-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
+            <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
         </div>
     </div>
 
     <div id="lobby-screen" class="screen" style="display:none;">
         <h2 id="roomDisplayLobby">Game: ------</h2>
-        <div id="host-controls-lobby"></div>
-        <div id="lobby-status">Joined: 0 / 0</div>
+        <div id="lobby-status" style="font-weight: bold; margin-bottom: 10px;">Joined: 0 / 0</div>
         <div id="player-list" class="player-list"></div>
         <p class="pulse">Waiting for everyone to join...</p>
+        <div id="host-controls-lobby"></div>
         <button class="leave-btn" onclick="leaveGame()">Leave Lobby</button>
     </div>
 
@@ -71,7 +71,7 @@
                 <h2>Leaderboard</h2>
                 <div id="leaderboard"></div>
                 <div id="host-end-game-container"></div>
-                <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
+                <button id="nextRoundBtn" class="next-round-btn big-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
             </div>
         </div>
     </div>

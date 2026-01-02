@@ -7,7 +7,6 @@
     <meta name="theme-color" content="#008080">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,7 +15,7 @@
             <div class="emoji-bounce">🃏</div>
             <h1>FLIP 7!</h1>
             <h2 class="bonus-text">+15 POINTS</h2>
-            <p>Tap anywhere to continue</p>
+            <p>Tap to continue</p>
         </div>
     </div>
 
@@ -45,7 +44,6 @@
         <h2 id="roomDisplayLobby">Game: ------</h2>
         <div id="lobby-status" class="lobby-count">Joined: 0 / 0</div>
         <div id="player-list" class="player-list"></div>
-        <p class="pulse">Waiting for players...</p>
         <button class="nav-btn-themed" onclick="window.leaveGame()">Leave Lobby</button>
     </div>
 
@@ -57,11 +55,11 @@
         </div>
         <div class="main-scroll-area">
             <div id="calc-view">
-                <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS ACTIVE!</div>
+                <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS!</div>
                 <div class="card-grid" id="cardGrid"></div>
                 <button class="big-btn bust-btn" id="bust-toggle-btn" onclick="window.triggerBust()">BUST</button>
                 <div class="mod-grid">
-                    <button id="btn-m2" onclick="window.toggleMod('m2', 0)">×2</button>
+                    <button id="btn-m2" onclick="window.toggleMod('m2', 2)">×2</button>
                     <button id="btn-p2" onclick="window.toggleMod('p2', 2)">+2</button>
                     <button id="btn-p4" onclick="window.toggleMod('p4', 4)">+4</button>
                     <button id="btn-p6" onclick="window.toggleMod('p6', 6)">+6</button>
@@ -75,7 +73,6 @@
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
             </div>
             <div id="waiting-view" style="display:none;">
-                <div id="winner-banner"></div>
                 <h2>Leaderboard</h2>
                 <div id="leaderboard"></div>
                 <button id="nextRoundBtn" class="big-btn next-btn" style="display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
@@ -87,7 +84,7 @@
         <div class="top-nav">
             <button class="nav-btn-themed" onclick="window.showScreen('game-screen')">← BACK</button>
             <div class="nav-code">ROUND LOGS</div>
-            <div style="width:60px;"></div>
+            <div style="width:50px;"></div>
         </div>
         <div id="history-log-container" class="history-list"></div>
     </div>

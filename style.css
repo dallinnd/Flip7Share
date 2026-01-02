@@ -1,73 +1,67 @@
-:root { --teal: #008080; --green: #2e8b57; --orange: #ff8c00; --gold: #ffd700; }
+:root { 
+    --teal: #008080; --green: #2e8b57; --orange: #ff8c00; --gold: #ffd700; 
+    --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
+}
+
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
 body { 
     margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); 
     color: white; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; 
-    font-family: sans-serif; overflow-x: hidden; overflow-y: auto; 
+    font-family: -apple-system, system-ui, sans-serif; overflow-x: hidden; 
 }
 
 .screen { 
-    width: calc(100% - 40px); /* Fits device width with padding */
-    max-width: 500px; text-align: center; 
-    background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); 
-    padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    width: calc(100% - 20px); max-width: 500px; text-align: center; 
+    background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); 
+    padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
     display: flex; flex-direction: column; margin: 20px auto;
-    overflow-y: auto; /* Makes every page scrollable */
+    padding-bottom: calc(20px + var(--safe-bottom));
 }
 
-/* Home UI Scale */
 .name-input-field { 
     width: 100%; padding: 20px; border-radius: 15px; border: none; 
-    font-size: 1.6rem; color: var(--teal); outline: none; box-sizing: border-box; 
-    margin-bottom: 25px; text-align: center; font-weight: bold;
+    font-size: 1.6rem; color: var(--teal); outline: none; margin-bottom: 25px; 
+    text-align: center; font-weight: bold;
 }
 
 .big-btn { 
     width: 100%; padding: 22px; margin: 12px 0; border-radius: 15px; 
     font-weight: 900; font-size: 1.4rem; border: none; cursor: pointer; text-transform: uppercase;
+    transition: transform 0.1s;
 }
+.big-btn:active { transform: scale(0.96); }
+
 .host-btn { background: white; color: var(--teal); }
 .join-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
+.submit-btn { background: var(--orange); color: white; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4); margin-top: 20px; }
 
-/* Counter */
-.host-setup-container { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2); }
-.counter-row { display: flex; justify-content: center; align-items: center; gap: 30px; margin: 15px 0; }
-.counter-btn { background: white; color: var(--teal); border: none; width: 55px; height: 55px; border-radius: 50%; font-size: 2rem; font-weight: bold; cursor: pointer; }
-.count-display { font-size: 2.8rem; font-weight: 800; min-width: 60px; }
-
-/* Sticky Nav */
-.top-nav-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); }
-.top-nav-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-.nav-btn-themed { background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; border-radius: 10px; padding: 10px 18px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
-.leave-style { padding: 12px 30px; font-size: 0.9rem; }
-
-/* Game Area */
-.main-scroll-area { overflow-y: auto; max-height: 70vh; padding-right: 5px; }
-
-.flip7-container { background: var(--gold); color: #000; padding: 12px; border-radius: 12px; font-weight: 900; margin-bottom: 15px; animation: popIn 0.3s both; }
-@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
-.mod-btn-active { background: var(--orange) !important; border-color: var(--orange) !important; transform: scale(1.05); }
-.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
-.card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 12px 5px; border-radius: 8px; font-weight: bold; }
-.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 10px; border-radius: 8px; }
-
-.winner-announce {
-    background: var(--gold);
-    color: black;
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    font-weight: 900;
-    font-size: 1.5rem;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+/* Totals Styling */
+.totals-area { margin: 20px 0; }
+.round-total-label { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; opacity: 0.9; }
+.grand-total-container { 
+    background: white; padding: 15px; border-radius: 20px; color: var(--teal); 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2); transition: transform 0.2s;
 }
+.grand-label { font-size: 0.75rem; font-weight: 900; letter-spacing: 1px; margin-bottom: 4px; }
+.grand-total-box { font-size: 3.5rem; font-weight: 900; line-height: 1; }
 
-.p-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.2); margin: 8px 0; border-radius: 10px; }
-.p-row.is-me { border: 2px solid white; background: rgba(255, 255, 255, 0.3); }
+/* Grids & Nav */
+.top-nav-container { padding-top: var(--safe-top); margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
+.top-nav-row { display: flex; justify-content: space-between; align-items: center; }
+.nav-btn-themed { background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid white; border-radius: 10px; padding: 8px 15px; font-size: 0.75rem; }
 
-/* Animation */
+.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
+.card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 15px 5px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; }
+.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mod-grid button { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 12px; border-radius: 10px; font-weight: bold; }
+.mod-btn-active { background: var(--orange) !important; border-color: var(--orange) !important; }
+
+/* List Styles */
+.p-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.2); margin: 8px 0; border-radius: 12px; }
+.p-row.is-me { border: 2px solid white; background: rgba(255, 255, 255, 0.2); }
+
+/* Animations */
 .shake { animation: shake 0.4s both; }
 @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } }
 .pulse { animation: pulse 2s infinite; }

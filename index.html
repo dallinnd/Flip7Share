@@ -8,42 +8,44 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <div id="welcome-screen" class="screen">
+    <div id="home-screen" class="screen">
         <h1>Flip 7 Share</h1>
         <div class="name-box" onclick="activateNameEdit()">
-            <input type="text" id="userNameInput" value="Player1" readonly>
+            <input type="text" id="userNameInput" readonly>
             <svg class="edit-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
         </div>
-        <button class="main-btn" onclick="showScreen('menu-screen')">Start Game</button>
-    </div>
-
-    <div id="menu-screen" class="screen" style="display:none;">
-        <button class="host-btn" onclick="hostGame()">Host a Game</button>
-        <button class="join-btn" onclick="openJoinPopup()">Join a Game</button>
+        
+        <button class="big-btn host-btn" onclick="hostGame()">HOST NEW GAME</button>
+        <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
+        <button id="resume-btn" class="resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">
-        <div id="host-controls" style="display:none;">
-            <button class="round-nav next" onclick="changeRound(1)">Next Round</button>
-            <button class="round-nav prev" onclick="changeRound(-1)">Prev Round</button>
-        </div>
-        <h2 id="roomCodeDisplay">Room: ------</h2>
-        
-        <div class="calculator">
-            <div id="calc-display">Total: 0</div>
-            <div class="card-grid" id="cardGrid">
-                </div>
-            <div class="mod-grid">
-                <button onclick="addModifier(2)">+2</button>
-                <button onclick="addModifier(4)">+4</button>
-                <button onclick="addModifier(6)">+6</button>
-                <button onclick="setX2()" class="x2-btn">×2</button>
-                <button onclick="triggerBust()" class="bust-btn">BUST</button>
-            </div>
-            <button class="submit-btn" onclick="submitRound()">Submit Round</button>
+        <div class="top-nav">
+            <button class="home-icon" onclick="showScreen('home-screen')">🏠 Home</button>
+            <span id="roomCodeDisplay">Code: ---</span>
         </div>
 
-        <div id="leaderboard"></div>
+        <div id="calc-view">
+            <div id="calc-display">Total: 0</div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div class="mod-grid">
+                <button id="btn-m2" onclick="toggleMod('m2', 0, 2)">×2</button>
+                <button id="btn-p2" onclick="toggleMod('p2', 2, 1)">+2</button>
+                <button id="btn-p4" onclick="toggleMod('p4', 4, 1)">+4</button>
+                <button id="btn-p6" onclick="toggleMod('p6', 6, 1)">+6</button>
+                <button id="btn-p8" onclick="toggleMod('p8', 8, 1)">+8</button>
+                <button id="btn-p10" onclick="toggleMod('p10', 10, 1)">+10</button>
+                <button class="bust-btn" onclick="triggerBust()">BUST</button>
+            </div>
+            <button class="submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
+        </div>
+
+        <div id="waiting-view" style="display:none;">
+            <h2>Waiting for Players...</h2>
+            <div id="leaderboard"></div>
+            <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
+        </div>
     </div>
 
     <script type="module" src="app.js"></script>

@@ -1,28 +1,14 @@
-:root { --teal: #008080; --green: #2e8b57; }
-body {
-    margin: 0; background: linear-gradient(135deg, var(--teal), var(--green));
-    color: white; height: 100vh; display: flex; justify-content: center; align-items: center;
-    font-family: sans-serif; overflow: hidden;
-}
-.screen {
-    width: 90%; max-width: 400px; padding: 20px; text-align: center;
-    background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
-    border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-.name-box {
-    background: white; border-radius: 12px; display: flex; align-items: center;
-    padding: 5px 15px; margin: 20px auto; width: 80%;
-}
-#userNameInput {
-    border: none; background: transparent; color: var(--teal); font-size: 1.2rem;
-    width: 100%; outline: none;
-}
-.edit-icon { width: 20px; fill: var(--teal); cursor: pointer; }
-.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 10px 0; }
-.card-grid button, .mod-grid button {
-    background: rgba(255,255,255,0.2); border: 1px solid white; color: white;
-    padding: 10px; border-radius: 5px; font-weight: bold;
-}
-.bust-btn { background: #ff4444 !important; }
-.submit-btn { background: white; color: var(--teal); width: 100%; margin-top: 10px; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
-#leaderboard { margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; max-height: 150px; overflow-y: auto; }
+:root { --teal: #008080; --green: #2e8b57; --orange: #ff8c00; }
+body { margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); color: white; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+.screen { width: 90%; max-width: 420px; text-align: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; }
+
+.big-btn { width: 100%; padding: 20px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+.host-btn { background: white; color: var(--teal); }
+.join-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
+.resume-btn { background: var(--orange); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; margin-top: 20px; }
+
+.next-round-btn { background: var(--orange); color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 1.4rem; font-weight: bold; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
+.card-grid button { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 15px 5px; border-radius: 8px; font-weight: bold; }
+.p-row { display: flex; justify-content: space-between; padding: 10px; background: rgba(0,0,0,0.2); margin: 5px 0; border-radius: 8px; }

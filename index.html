@@ -22,7 +22,7 @@
     </div>
 
     <div id="lobby-screen" class="screen" style="display:none;">
-        <h2 id="roomDisplayLobby">Room: ------</h2>
+        <h2 id="roomDisplayLobby">Game: ------</h2>
         <div id="lobby-status">Joined: 0 / 0</div>
         <div id="player-list" class="player-list"></div>
         <p class="pulse">Waiting for everyone to join...</p>
@@ -30,12 +30,13 @@
 
     <div id="game-screen" class="screen" style="display:none;">
         <div class="top-nav">
-            <button class="home-icon" onclick="showScreen('home-screen')">🏠 Home</button>
-            <span id="roomCodeDisplay">Code: ---</span>
+            <div class="home-icon-wrapper" onclick="showScreen('home-screen')">
+                <svg viewBox="0 0 24 24" class="nav-svg"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </div>
+            <span id="roomCodeDisplay" class="top-right-game">Game: ------</span>
         </div>
 
         <div id="calc-view">
-            <div id="calc-display">Total: 0</div>
             <div class="card-grid" id="cardGrid"></div>
             <div class="mod-grid">
                 <button id="btn-m2" onclick="toggleMod('m2', 0, 2)">×2</button>
@@ -46,11 +47,13 @@
                 <button id="btn-p10" onclick="toggleMod('p10', 10, 1)">+10</button>
                 <button class="bust-btn" onclick="triggerBust()">BUST</button>
             </div>
+
+            <div id="calc-display" class="large-total">0</div>
             <button class="submit-btn" onclick="submitRound()">SUBMIT SCORE</button>
         </div>
 
         <div id="waiting-view" style="display:none;">
-            <h2>Round Results</h2>
+            <h2>Round Summary</h2>
             <div id="leaderboard"></div>
             <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
         </div>

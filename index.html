@@ -73,11 +73,14 @@
                     <button class="bust-btn" onclick="triggerBust()">BUST</button>
                 </div>
                 
-                <div class="totals-area">
-                    <div class="round-total-label">ROUND TOTAL: <span id="round-display">0</span></div>
-                    <div class="grand-total-container">
-                        <div class="grand-label">GRAND TOTAL</div>
-                        <div id="grand-display" class="grand-total-box">0</div>
+                <div class="totals-row">
+                    <div class="total-box round-box">
+                        <div class="box-label">ROUND</div>
+                        <div id="round-display" class="box-number">0</div>
+                    </div>
+                    <div class="total-box grand-box">
+                        <div class="box-label">GRAND</div>
+                        <div id="grand-display" class="box-number">0</div>
                     </div>
                 </div>
                 <button class="big-btn submit-btn" onclick="submitRound()">SUBMIT SCORE</button>

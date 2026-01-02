@@ -19,7 +19,7 @@ let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f
 let usedCards = [], bonuses = [], mult = 1, busted = false;
 let targetPlayerCount = 4;
 
-// --- Init & Keyboard ---
+// --- Keyboard & Init ---
 const nInput = document.getElementById('userNameInput');
 if(nInput) {
     nInput.value = myName;
@@ -38,16 +38,18 @@ window.adjustCount = (val) => {
     document.getElementById('playerCountDisplay').innerText = targetPlayerCount;
 };
 
-// --- Networking ---
+// --- Hosting & Joining ---
 window.hostGameFromUI = () => {
-    if(!myName || myName.trim() === "") { alert("Enter your name first!"); return; }
+    if(!myName || myName.trim() === "") return alert("Enter your name first!");
     hostGame(targetPlayerCount);
 };
 
 async function hostGame(target) {
     gameCode = Math.floor(100000 + Math.random() * 900000);
     localStorage.setItem('f7_code', gameCode);
-    await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: target, status: "waiting", roundNum: 1 });
+    await set(ref(db, `games/${gameCode}`), { 
+        host: myName, targetCount: target, status: "waiting", roundNum: 1 
+    });
     joinGame(gameCode);
 }
 
@@ -66,13 +68,31 @@ async function joinGame(code) {
     onValue(ref(db, `games/${code}`), syncApp);
 }
 
-// --- Calc Logic ---
+// --- Card Grid Logic (7-Card Constraint) ---
+const grid = document.getElementById('cardGrid');
+if (grid && grid.children.length === 0) {
+    for(let i=1; i<=12; i++){
+        let btn = document.createElement('button'); btn.id = 'c-'+i; btn.innerText = i;
+        btn.onclick = () => {
+            if(usedCards.includes(i)) {
+                usedCards = usedCards.filter(v => v !== i);
+            } else if (usedCards.length < 7) {
+                usedCards.push(i);
+            } else {
+                // Shake if user tries to add 8th card
+                document.getElementById('calc-display').classList.add('shake');
+                setTimeout(() => document.getElementById('calc-display').classList.remove('shake'), 400);
+            }
+            updateUI();
+        };
+        grid.appendChild(btn);
+    }
+}
+
+// --- Independent Modifiers ---
 window.toggleMod = (id, val) => {
     if(id === 'm2') mult = (mult === 2) ? 1 : 2;
-    else {
-        if(bonuses.includes(val)) bonuses = bonuses.filter(b => b !== val);
-        else bonuses.push(val);
-    }
+    else bonuses.includes(val) ? bonuses = bonuses.filter(b=>b!==val) : bonuses.push(val);
     updateUI();
 };
 
@@ -83,43 +103,37 @@ window.triggerBust = () => {
     updateUI(); 
 };
 
-// Grid Gen
-const grid = document.getElementById('cardGrid');
-if (grid && grid.children.length === 0) {
-    for(let i=1; i<=12; i++){
-        let btn = document.createElement('button'); btn.id = 'c-'+i; btn.innerText = i;
-        btn.onclick = () => {
-            if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i);
-            else usedCards.push(i); updateUI();
-        };
-        grid.appendChild(btn);
-    }
-}
-
 function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
-    let totalB = bonuses.reduce((a, b) => a + b, 0);
-    const hasFlip7 = (usedCards.length === 7);
-    const flip7Bonus = hasFlip7 ? 15 : 0;
+    let totalBonus = bonuses.reduce((a, b) => a + b, 0);
+    const isFlip7 = (usedCards.length === 7);
+    const flip7Score = isFlip7 ? 15 : 0;
+
+    let total = busted ? 0 : (sum * mult) + totalBonus + flip7Score;
     
-    let total = busted ? 0 : (sum * mult) + totalB + flip7Bonus;
-    
-    document.getElementById('flip7-banner').style.display = (hasFlip7 && !busted) ? 'block' : 'none';
+    document.getElementById('flip7-banner').style.display = (isFlip7 && !busted) ? 'block' : 'none';
     const d = document.getElementById('calc-display');
     d.innerText = busted ? "BUST!" : total;
-    d.style.color = busted ? "#ff4444" : (hasFlip7 ? "var(--gold)" : "white");
+    d.style.color = busted ? "#ff4444" : (isFlip7 ? "var(--gold)" : "white");
 
+    // Grid Dimming
     for(let i=1; i<=12; i++) {
         const b = document.getElementById('c-'+i);
-        if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
+        const sel = usedCards.includes(i);
+        if(b) {
+            b.style.background = sel ? "var(--teal)" : "rgba(255,255,255,0.2)";
+            b.style.opacity = (isFlip7 && !sel) ? "0.3" : "1";
+        }
     }
+    
+    // Mods (Orange)
     document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
     [2, 4, 6, 8, 10].forEach(v => {
         document.getElementById('btn-p' + v).className = bonuses.includes(v) ? "mod-btn-active" : "";
     });
 }
 
-// --- Sync & Round Management ---
+// --- Sync & Multi-player Logic ---
 function syncApp(snap) {
     const data = snap.val(); if(!data) { localStorage.removeItem('f7_code'); location.reload(); return; }
     const players = Object.values(data.players || {});
@@ -154,11 +168,12 @@ function syncApp(snap) {
     document.getElementById('nextRoundBtn').style.display = (data.host === myName && players.every(p=>p.submitted)) ? 'block' : 'none';
 }
 
+// --- Submission ---
 window.submitRound = async () => {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let totalB = bonuses.reduce((a, b) => a + b, 0);
-    const flip7Bonus = (usedCards.length === 7) ? 15 : 0;
-    let score = busted ? 0 : (sum * mult) + totalB + flip7Bonus;
+    const flip7S = (usedCards.length === 7) ? 15 : 0;
+    let score = busted ? 0 : (sum * mult) + totalB + flip7S;
     
     const snap = await get(ref(db, `games/${gameCode}`));
     const data = snap.val();
@@ -192,7 +207,7 @@ window.revertToRound = async (r) => {
             up[`games/${gameCode}/players/${p}/history`] = data.players[p].history.slice(0, r + 1);
             up[`games/${gameCode}/players/${p}/submitted`] = false;
         }
-        await update(ref(db), up); showScreen('game-screen');
+        await update(ref(db), up);
     }
 };
 

@@ -10,14 +10,17 @@
 <body>
     <div id="home-screen" class="screen">
         <h1>Flip 7 Share</h1>
-        <div class="name-box" onclick="activateNameEdit()">
-            <input type="text" id="userNameInput" readonly>
-            <svg class="edit-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-        </div>
         
-        <button class="big-btn host-btn" onclick="hostGame()">HOST NEW GAME</button>
-        <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
-        <button id="resume-btn" class="resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
+        <div class="setup-section">
+            <p>Enter Player Name:</p>
+            <input type="text" id="userNameInput" placeholder="Tap to type name..." class="name-input-field">
+        </div>
+
+        <div class="action-section">
+            <button class="big-btn host-btn" onclick="hostGame()">HOST NEW GAME</button>
+            <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
+            <button id="resume-btn" class="resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
+        </div>
     </div>
 
     <div id="game-screen" class="screen" style="display:none;">
@@ -42,7 +45,7 @@
         </div>
 
         <div id="waiting-view" style="display:none;">
-            <h2>Waiting for Players...</h2>
+            <h2>Round Results</h2>
             <div id="leaderboard"></div>
             <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>
         </div>

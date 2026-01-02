@@ -18,10 +18,14 @@ let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
+// FIX: Counter logic with proper range and display update
 window.adjustCount = (v) => {
-    targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + v));
-    const disp = document.getElementById('playerCountDisplay');
-    if (disp) disp.innerText = targetPlayerCount;
+    let newVal = targetPlayerCount + v;
+    if (newVal >= 1 && newVal <= 20) {
+        targetPlayerCount = newVal;
+        const disp = document.getElementById('playerCountDisplay');
+        if (disp) disp.innerText = targetPlayerCount;
+    }
 };
 
 window.hostGameFromUI = async () => {
@@ -50,7 +54,9 @@ window.showScreen = (id) => {
 
 window.triggerBust = () => {
     busted = !busted;
-    if(busted) { usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; }
+    if(busted) { 
+        usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; 
+    }
     updateUI();
 };
 
@@ -60,7 +66,10 @@ window.toggleMod = (id, val) => {
     updateUI();
 };
 
-window.closeCelebration = () => document.getElementById('celebration-overlay').style.display = 'none';
+window.closeCelebration = () => {
+    document.getElementById('celebration-overlay').style.display = 'none';
+};
+
 window.resumeGame = () => joinGame(gameCode);
 window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};
 
@@ -76,6 +85,7 @@ function updateUI() {
     let totalB = bonuses.reduce((a, b) => a + b, 0);
     const hasF7 = (usedCards.length === 7);
     
+    // BUG FIX: Celebration Popup Trigger
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
         hasCelebrated = true;
@@ -93,6 +103,7 @@ function updateUI() {
     const banner = document.getElementById('flip7-banner');
     if (banner) banner.style.display = (hasF7 && !busted) ? 'block' : 'none';
 
+    // Update Grid highlights
     const grid = document.getElementById('cardGrid');
     if(grid) {
         for(let i=0; i<=12; i++) {
@@ -113,8 +124,14 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
+    // BUG FIX: Calculate grand total up to previous round
     const history = me.history || [0];
-    currentGrandTotal = history.slice(0, data.roundNum).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0);
+    currentGrandTotal = history.reduce((acc, entry, idx) => {
+        if (idx > 0 && idx < data.roundNum) {
+            return acc + (typeof entry === 'object' ? entry.score : entry);
+        }
+        return acc;
+    }, 0);
     
     if (data.status === "waiting") {
         window.showScreen('lobby-screen');
@@ -139,7 +156,7 @@ function syncApp(snap) {
                 <span>${p.total} ${p.total >= 200 ? '🔥' : 'pts'}</span>
             </div>`).join("");
         
-        // --- IMPROVED LOG UI LOGIC ---
+        // Logs UI logic
         let hHTML = "";
         for (let r = data.roundNum; r >= 1; r--) {
             let rows = playersArr.map(p => {
@@ -208,10 +225,21 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = "";
         for(let i=0; i<=12; i++){
             let btn = document.createElement('button'); btn.innerText = i;
-            btn.onclick = () => { busted = false; if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); else if(usedCards.length < 7) usedCards.push(i); updateUI(); };
+            btn.onclick = () => { 
+                // BUG FIX: Selection un-busts the user
+                if (busted) {
+                    busted = false;
+                    usedCards = [i];
+                } else {
+                    if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
+                    else if(usedCards.length < 7) usedCards.push(i);
+                }
+                updateUI(); 
+            };
             grid.appendChild(btn);
         }
     }
+    // FIX: Initialize the counter display correctly
     const countDisp = document.getElementById('playerCountDisplay');
     if(countDisp) countDisp.innerText = targetPlayerCount;
 });

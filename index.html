@@ -1,32 +1,64 @@
-<div id="welcome-screen" class="screen">
-    <h1>Flip 7 Share</h1>
-    <div class="name-edit-box">
-        <input type="text" id="userNameInput" value="Player" readonly>
-        <button id="editNameBtn" onclick="toggleNameEdit()">✏️</button>
-    </div>
-    <button onclick="showScreen('menu-screen')">Start</button>
-</div>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Beautiful Teal to Green Gradient */
+    background: linear-gradient(135deg, #008080 0%, #2e8b57 100%);
+    color: white;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
 
-<div id="game-screen" class="screen" style="display:none;">
-    <div id="host-controls" style="display:none;">
-        <button class="round-btn next" onclick="updateRound(1)">Next Round</button>
-        <button class="round-btn prev" onclick="updateRound(-1)">Prev Round</button>
-    </div>
+.screen {
+    width: 90%;
+    max-width: 450px;
+    padding: 30px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1); /* Subtle glass effect */
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
 
-    <div class="calc-container">
-        <div id="calc-display">Total: 0</div>
-        <div class="button-grid">
-            <div id="num-buttons"></div> 
-            <button onclick="setMultiplier(2)" class="mod-btn">×2</button>
-            <button onclick="addMod(2)" class="mod-btn">+2</button>
-            <button onclick="addMod(4)" class="mod-btn">+4</button>
-            <button onclick="addMod(6)" class="mod-btn">+6</button>
-            <button onclick="addMod(8)" class="mod-btn">+8</button>
-            <button onclick="addMod(10)" class="mod-btn">+10</button>
-            <button onclick="handleBust()" class="bust-btn">BUST</button>
-        </div>
-        <button id="submitBtn" onclick="submitScore()">Submit Round</button>
-    </div>
+/* The White Name Box */
+.name-box {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    padding: 5px 15px;
+    display: flex;
+    align-items: center;
+    margin: 20px auto;
+    width: 80%;
+}
 
-    <div id="leaderboard"></div>
-</div>
+#userNameInput {
+    border: none;
+    background: transparent;
+    font-size: 1.2rem;
+    color: #008080;
+    width: 100%;
+    padding: 10px 0;
+    outline: none;
+}
+
+/* The Teal Pencil Icon */
+.edit-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    fill: #008080; /* Teal color */
+    margin-left: 10px;
+}
+
+/* Card Buttons Styles */
+.card-grid button {
+    background: #ffffff22;
+    border: 1px solid white;
+    color: white;
+    border-radius: 8px;
+    padding: 15px;
+    font-weight: bold;
+}

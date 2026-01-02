@@ -18,7 +18,7 @@ let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false, lastRoundTriggered = false;
 
-// --- HOME SCREEN FEATURES ---
+// --- UTILITY: Home Navigation & Session Management ---
 window.adjustCount = (v) => {
     let newVal = targetPlayerCount + v;
     if (newVal >= 1 && newVal <= 20) {
@@ -32,7 +32,7 @@ window.resumeActiveGame = () => { if (gameCode) joinGame(gameCode); };
 
 window.deleteActiveGame = async () => {
     if (!gameCode) return;
-    if (confirm("Delete this game? This clears it for everyone.")) {
+    if (confirm("Delete this game session for all players?")) {
         await set(ref(db, `games/${gameCode}`), null);
         localStorage.removeItem('f7_code');
         gameCode = null;
@@ -45,7 +45,7 @@ function checkActiveGame() {
     if (container) container.style.display = gameCode ? 'block' : 'none';
 }
 
-// --- CORE GAME LOGIC ---
+// --- CORE GAME ENGINE ---
 window.hostGameFromUI = async () => {
     if(!myName || myName.trim() === "") return alert("Please enter your name first!");
     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -108,6 +108,7 @@ function syncApp(snap) {
     const data = snap.val(); if(!data) return;
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
+    const isHost = data.host === myName;
 
     const history = me.history || [0];
     currentGrandTotal = history.reduce((acc, entry, idx) => {
@@ -120,7 +121,7 @@ function syncApp(snap) {
         document.getElementById('roomDisplayLobby').innerText = "Game: " + gameCode;
         document.getElementById('lobby-status').innerText = `Joined: ${playersArr.length} / ${data.targetCount}`;
         document.getElementById('player-list').innerHTML = playersArr.map(p => `<div class="p-row"><b>${p.name}</b></div>`).join("");
-        if(playersArr.length >= data.targetCount && data.host === myName) update(ref(db, `games/${gameCode}`), { status: "active" });
+        if(playersArr.length >= data.targetCount && isHost) update(ref(db, `games/${gameCode}`), { status: "active" });
     } else {
         window.showScreen('game-screen');
         document.getElementById('roomCodeDisplay').innerText = `CODE: ${gameCode} | R${data.roundNum}`;
@@ -132,7 +133,7 @@ function syncApp(snap) {
             total: (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0) 
         })).sort((a,b)=>b.total-a.total);
         
-        // WINNER / LAST ROUND CHECK
+        // WIN CONDITION CHECK
         const leader = sorted[0];
         const targetBanner = document.getElementById('target-leader-banner');
         if (leader && leader.total >= 200) {
@@ -141,7 +142,7 @@ function syncApp(snap) {
                 document.getElementById('leader-name-display').innerText = leader.name.toUpperCase();
                 document.getElementById('leader-score-display').innerText = leader.total;
             }
-            if (!lastRoundTriggered) { alert("🚨 LAST ROUND! Someone passed 200!"); lastRoundTriggered = true; }
+            if (!lastRoundTriggered) { alert("🚨 LAST ROUND! Someone passed 200 points."); lastRoundTriggered = true; }
         } else {
             if (targetBanner) targetBanner.style.display = 'none';
             lastRoundTriggered = false;
@@ -153,7 +154,7 @@ function syncApp(snap) {
                 <span>${p.total} pts</span>
             </div>`).join("");
         
-        // History Logic
+        // --- LOGS & REWIND LOGIC ---
         let hHTML = "";
         for (let r = data.roundNum; r >= 1; r--) {
             let rows = playersArr.map(p => {
@@ -161,15 +162,22 @@ function syncApp(snap) {
                 let sVal = sObj ? (typeof sObj === 'object' ? sObj.score : sObj) : 0;
                 return `<div class="history-row"><span>${p.name}</span><b>${sVal}</b></div>`;
             }).join("");
-            hHTML += `<div class="history-block" onclick="window.revertToRound(${r})"><span class="round-label">ROUND ${r}</span>${rows}</div>`;
+            hHTML += `
+                <div class="history-block" ${isHost ? `onclick="window.revertToRound(${r})"` : ''} 
+                     style="${isHost ? 'cursor: pointer;' : 'cursor: default;'}">
+                    <span class="round-label">
+                        ROUND ${r} ${isHost ? '<span style="float:right;">↩️ REWIND</span>' : ''}
+                    </span>
+                    ${rows}
+                </div>`;
         }
         document.getElementById('history-log-container').innerHTML = hHTML;
-        document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
+        document.getElementById('nextRoundBtn').style.display = (isHost && playersArr.every(p => p.submitted)) ? 'block' : 'none';
     }
     updateUI();
 }
 
-// --- WINDOW MAPPINGS ---
+// --- GLOBAL MAPPINGS ---
 window.showScreen = (id) => {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     const target = document.getElementById(id); if (target) target.style.display = 'flex';
@@ -197,7 +205,23 @@ window.readyForNextRound = async () => {
     await update(ref(db), up);
 };
 
-// --- INITIALIZATION ---
+window.revertToRound = async (r) => {
+    const snap = await get(ref(db, `games/${gameCode}`));
+    const data = snap.val();
+    if (data.host === myName && confirm(`Rewind to Round ${r}? Progress in the current round will be lost.`)) {
+        const up = { [`games/${gameCode}/roundNum`]: r };
+        for (let p in data.players) {
+            up[`games/${gameCode}/players/${p}/history`] = (data.players[p].history || [0]).slice(0, r + 1);
+            up[`games/${gameCode}/players/${p}/submitted`] = false;
+        }
+        await update(ref(db), up);
+        usedCards = []; bonuses = []; mult = 1; busted = false;
+        window.showScreen('game-screen');
+        updateUI();
+    }
+};
+
+// --- STARTUP ---
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) { nInput.value = myName; nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); }; }

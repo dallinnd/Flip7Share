@@ -33,8 +33,13 @@
             <button class="big-btn host-btn" onclick="window.hostGameFromUI()">HOST NEW GAME</button>
         </div>
         <div class="home-footer">
+            <div id="active-game-container" style="display:none; margin-bottom: 15px;">
+                <div class="active-game-banner">
+                    <button class="big-btn resume-btn" onclick="window.resumeActiveGame()">CONTINUE ACTIVE GAME</button>
+                    <button class="delete-icon-btn" onclick="window.deleteActiveGame()">🗑️</button>
+                </div>
+            </div>
             <button class="big-btn join-btn" onclick="window.openJoinPopup()">JOIN EXISTING</button>
-            <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="window.resumeGame()">RESUME GAME</button>
         </div>
     </div>
 
@@ -64,6 +69,9 @@
                 </div>
                 <div class="section-spacer"></div>
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
+                <div id="target-leader-banner" class="banner threshold-reached" style="display:none; color: black; margin-top: 15px;">
+                    🏆 <span id="leader-name-display">NAME</span>: <span id="leader-score-display">0</span> pts
+                </div>
             </div>
             <div id="waiting-view" style="display:none;">
                 <h2>Leaderboard</h2>

@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,7 +16,7 @@
             <div class="emoji-bounce">🃏</div>
             <h1>FLIP 7!</h1>
             <h2 class="bonus-text">+15 POINTS</h2>
-            <p class="tap-hint">Tap anywhere to continue</p>
+            <p>Tap anywhere to continue</p>
         </div>
     </div>
 
@@ -70,14 +69,8 @@
                     <button id="btn-p10" onclick="window.toggleMod('p10', 10)">+10</button>
                 </div>
                 <div class="totals-row">
-                    <div class="total-box">
-                        <small>ROUND</small>
-                        <div id="round-display">0</div>
-                    </div>
-                    <div class="total-box grand">
-                        <small>GRAND</small>
-                        <div id="grand-display">0</div>
-                    </div>
+                    <div class="total-box"><small>ROUND</small><div id="round-display">0</div></div>
+                    <div class="total-box grand"><small>GRAND</small><div id="grand-display">0</div></div>
                 </div>
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
             </div>
@@ -97,7 +90,6 @@
             <div style="width:60px;"></div>
         </div>
         <div id="history-log-container" class="history-list"></div>
-        <p class="history-hint">Hosts: Tap a round to rewind the game.</p>
     </div>
 
     <script type="module" src="app.js"></script>

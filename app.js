@@ -16,23 +16,18 @@ const db = getDatabase(app);
 
 let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f7_name') || "";
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
-let targetPlayerCount = 4, hasCelebrated = false, lastRoundTriggered = false;
+let targetPlayerCount = 4, hasCelebrated = false, lastRoundTriggered = false, lastSyncedRound = 0;
 
-// --- UTILITY: Home Navigation & Session Management ---
+// --- HOME & SESSION ---
 window.adjustCount = (v) => {
-    let newVal = targetPlayerCount + v;
-    if (newVal >= 1 && newVal <= 20) {
-        targetPlayerCount = newVal;
-        const disp = document.getElementById('playerCountDisplay');
-        if (disp) disp.innerText = targetPlayerCount;
-    }
+    targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + v));
+    const disp = document.getElementById('playerCountDisplay');
+    if (disp) disp.innerText = targetPlayerCount;
 };
 
 window.resumeActiveGame = () => { if (gameCode) joinGame(gameCode); };
-
 window.deleteActiveGame = async () => {
-    if (!gameCode) return;
-    if (confirm("Delete this game session for all players?")) {
+    if (gameCode && confirm("Delete game session?")) {
         await set(ref(db, `games/${gameCode}`), null);
         localStorage.removeItem('f7_code');
         gameCode = null;
@@ -45,18 +40,15 @@ function checkActiveGame() {
     if (container) container.style.display = gameCode ? 'block' : 'none';
 }
 
-// --- CORE GAME ENGINE ---
+// --- GAME LOGIC ---
 window.hostGameFromUI = async () => {
-    if(!myName || myName.trim() === "") return alert("Please enter your name first!");
-    const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-    gameCode = newCode;
+    if(!myName || myName.trim() === "") return alert("Enter your name first!");
+    gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     localStorage.setItem('f7_code', gameCode);
-    try {
-        await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: targetPlayerCount, status: "waiting", roundNum: 1 });
-        await set(ref(db, `games/${gameCode}/players/${myName}`), { name: myName, history: [0], submitted: false });
-        onValue(ref(db, `games/${gameCode}`), syncApp);
-        checkActiveGame();
-    } catch (e) { alert("Hosting failed: " + e.message); }
+    await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: targetPlayerCount, status: "waiting", roundNum: 1 });
+    await set(ref(db, `games/${gameCode}/players/${myName}`), { name: myName, history: [0], submitted: false });
+    onValue(ref(db, `games/${gameCode}`), syncApp);
+    checkActiveGame();
 };
 
 async function joinGame(code) {
@@ -68,36 +60,27 @@ async function joinGame(code) {
 }
 
 function updateUI() {
-    let sum = usedCards.reduce((a, b) => a + b, 0);
-    let totalB = bonuses.reduce((a, b) => a + b, 0);
     const hasF7 = (usedCards.length === 7);
-    
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
         hasCelebrated = true;
     }
     if(!hasF7) hasCelebrated = false;
 
+    let sum = usedCards.reduce((a, b) => a + b, 0);
+    let totalB = bonuses.reduce((a, b) => a + b, 0);
     let roundScore = busted ? 0 : (sum * mult) + totalB + (hasF7 ? 15 : 0);
-    const rDisp = document.getElementById('round-display');
-    const gDisp = document.getElementById('grand-display');
     
-    if (rDisp) rDisp.innerText = busted ? "BUST" : roundScore;
-    if (gDisp) gDisp.innerText = currentGrandTotal + roundScore;
-    
+    document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
+    document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
     document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
-    const banner = document.getElementById('flip7-banner');
-    if (banner) banner.style.display = (hasF7 && !busted) ? 'block' : 'none';
+    document.getElementById('flip7-banner').style.display = (hasF7 && !busted) ? 'block' : 'none';
 
-    const grid = document.getElementById('cardGrid');
-    if(grid) {
-        for(let i=0; i<=12; i++) {
-            const b = grid.children[i];
-            if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
-        }
+    for(let i=0; i<=12; i++) {
+        const b = document.getElementById('cardGrid').children[i];
+        if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
     }
-    const m2Btn = document.getElementById('btn-m2');
-    if (m2Btn) m2Btn.className = (mult === 2) ? "mod-btn-active" : "";
+    document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
     [2,4,6,8,10].forEach(v => {
         const b = document.getElementById('btn-p' + v);
         if(b) b.className = bonuses.includes(v) ? "mod-btn-active" : "";
@@ -110,8 +93,21 @@ function syncApp(snap) {
     const playersArr = Object.values(data.players || {});
     const isHost = data.host === myName;
 
-    const history = me.history || [0];
-    currentGrandTotal = history.reduce((acc, entry, idx) => {
+    // RESTORE STATE ON REWIND: If round number changed and we are unsubmitted, reload history
+    if (data.roundNum !== lastSyncedRound) {
+        if (!me.submitted && me.history && me.history[data.roundNum]) {
+            const last = me.history[data.roundNum];
+            if (typeof last === 'object') {
+                usedCards = last.usedCards || [];
+                bonuses = last.bonuses || [];
+                mult = last.mult || 1;
+                busted = last.busted || false;
+            }
+        }
+        lastSyncedRound = data.roundNum;
+    }
+
+    currentGrandTotal = (me.history || [0]).reduce((acc, entry, idx) => {
         if (idx > 0 && idx < data.roundNum) return acc + (typeof entry === 'object' ? entry.score : entry);
         return acc;
     }, 0);
@@ -133,18 +129,14 @@ function syncApp(snap) {
             total: (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0) 
         })).sort((a,b)=>b.total-a.total);
         
-        // WIN CONDITION CHECK
         const leader = sorted[0];
-        const targetBanner = document.getElementById('target-leader-banner');
         if (leader && leader.total >= 200) {
-            if (targetBanner) {
-                targetBanner.style.display = 'block';
-                document.getElementById('leader-name-display').innerText = leader.name.toUpperCase();
-                document.getElementById('leader-score-display').innerText = leader.total;
-            }
-            if (!lastRoundTriggered) { alert("🚨 LAST ROUND! Someone passed 200 points."); lastRoundTriggered = true; }
+            document.getElementById('target-leader-banner').style.display = 'block';
+            document.getElementById('leader-name-display').innerText = leader.name.toUpperCase();
+            document.getElementById('leader-score-display').innerText = leader.total;
+            if (!lastRoundTriggered) { alert("🚨 LAST ROUND!"); lastRoundTriggered = true; }
         } else {
-            if (targetBanner) targetBanner.style.display = 'none';
+            document.getElementById('target-leader-banner').style.display = 'none';
             lastRoundTriggered = false;
         }
 
@@ -153,40 +145,28 @@ function syncApp(snap) {
                 <b>${p.name} ${p.submitted ? '✅' : '⏳'}</b>
                 <span>${p.total} pts</span>
             </div>`).join("");
-        
-        // --- LOGS & REWIND LOGIC ---
+
+        // Logs
         let hHTML = "";
         for (let r = data.roundNum; r >= 1; r--) {
             let rows = playersArr.map(p => {
-                let sObj = p.history && p.history[r];
-                let sVal = sObj ? (typeof sObj === 'object' ? sObj.score : sObj) : 0;
+                let sVal = (p.history && p.history[r]) ? (typeof p.history[r] === 'object' ? p.history[r].score : p.history[r]) : 0;
                 return `<div class="history-row"><span>${p.name}</span><b>${sVal}</b></div>`;
             }).join("");
-            hHTML += `
-                <div class="history-block" ${isHost ? `onclick="window.revertToRound(${r})"` : ''} 
-                     style="${isHost ? 'cursor: pointer;' : 'cursor: default;'}">
-                    <span class="round-label">
-                        ROUND ${r} ${isHost ? '<span style="float:right;">↩️ REWIND</span>' : ''}
-                    </span>
-                    ${rows}
-                </div>`;
+            hHTML += `<div class="history-block"><span class="round-label">ROUND ${r}</span>${rows}</div>`;
         }
         document.getElementById('history-log-container').innerHTML = hHTML;
-        document.getElementById('nextRoundBtn').style.display = (isHost && playersArr.every(p => p.submitted)) ? 'block' : 'none';
+
+        // Host Controls
+        const hControls = document.getElementById('host-round-controls');
+        if (hControls) {
+            hControls.style.display = isHost ? 'flex' : 'none';
+            document.getElementById('nextRoundBtn').style.display = playersArr.every(p => p.submitted) ? 'block' : 'none';
+            document.getElementById('rewindBtn').style.display = data.roundNum > 1 ? 'block' : 'none';
+        }
     }
     updateUI();
 }
-
-// --- GLOBAL MAPPINGS ---
-window.showScreen = (id) => {
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    const target = document.getElementById(id); if (target) target.style.display = 'flex';
-};
-window.triggerBust = () => { busted = !busted; if(busted) { usedCards = []; bonuses = []; mult = 1; } updateUI(); };
-window.toggleMod = (id, val) => { if(id === 'm2') mult = (mult === 2) ? 1 : 2; else bonuses.includes(val) ? bonuses = bonuses.filter(b=>b!==val) : bonuses.push(val); updateUI(); };
-window.closeCelebration = () => document.getElementById('celebration-overlay').style.display = 'none';
-window.openJoinPopup = () => { let c = prompt("Enter 6-digit code:"); if(c && myName) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); } };
-window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};
 
 window.submitRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
@@ -205,23 +185,30 @@ window.readyForNextRound = async () => {
     await update(ref(db), up);
 };
 
-window.revertToRound = async (r) => {
+window.rewindOneRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const data = snap.val();
-    if (data.host === myName && confirm(`Rewind to Round ${r}? Progress in the current round will be lost.`)) {
-        const up = { [`games/${gameCode}/roundNum`]: r };
+    if (data.host === myName && data.roundNum > 1 && confirm(`Rewind to Round ${data.roundNum - 1}?`)) {
+        const targetR = data.roundNum - 1;
+        const updates = { [`games/${gameCode}/roundNum`]: targetR };
         for (let p in data.players) {
-            up[`games/${gameCode}/players/${p}/history`] = (data.players[p].history || [0]).slice(0, r + 1);
-            up[`games/${gameCode}/players/${p}/submitted`] = false;
+            updates[`games/${gameCode}/players/${p}/history`] = (data.players[p].history || [0]).slice(0, targetR + 1);
+            updates[`games/${gameCode}/players/${p}/submitted`] = false;
         }
-        await update(ref(db), up);
-        usedCards = []; bonuses = []; mult = 1; busted = false;
-        window.showScreen('game-screen');
-        updateUI();
+        await update(ref(db), updates);
     }
 };
 
-// --- STARTUP ---
+window.showScreen = (id) => {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    const target = document.getElementById(id); if (target) target.style.display = 'flex';
+};
+window.triggerBust = () => { busted = !busted; if(busted) { usedCards = []; bonuses = []; mult = 1; } updateUI(); };
+window.toggleMod = (id, val) => { if(id === 'm2') mult = (mult === 2) ? 1 : 2; else bonuses.includes(val) ? bonuses = bonuses.filter(b=>b!==val) : bonuses.push(val); updateUI(); };
+window.closeCelebration = () => document.getElementById('celebration-overlay').style.display = 'none';
+window.openJoinPopup = () => { let c = prompt("Enter 6-digit code:"); if(c && myName) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); } };
+window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};
+
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) { nInput.value = myName; nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); }; }

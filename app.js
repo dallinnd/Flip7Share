@@ -14,37 +14,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// State
 let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f7_name') || "";
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-// --- GLOBAL ATTACHMENTS (Fixes the "Not Working" Buttons) ---
-
+// Global Exports
 window.adjustCount = (v) => {
     targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + v));
-    const display = document.getElementById('playerCountDisplay');
-    if (display) display.innerText = targetPlayerCount;
+    document.getElementById('playerCountDisplay').innerText = targetPlayerCount;
 };
 
 window.hostGameFromUI = async () => {
-    if(!myName || myName.trim() === "") return alert("Please enter your name first!");
-    
-    const newCode = Math.floor(100000 + Math.random() * 900000);
-    gameCode = newCode.toString();
+    if(!myName) return alert("Enter name!");
+    gameCode = Math.floor(100000 + Math.random() * 900000).toString();
     localStorage.setItem('f7_code', gameCode);
-
-    try {
-        await set(ref(db, `games/${gameCode}`), { 
-            host: myName, 
-            targetCount: targetPlayerCount, 
-            status: "waiting", 
-            roundNum: 1 
-        });
-        joinGame(gameCode);
-    } catch (e) {
-        alert("Firebase error: " + e.message);
-    }
+    await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: targetPlayerCount, status: "waiting", roundNum: 1 });
+    joinGame(gameCode);
 };
 
 window.openJoinPopup = () => {
@@ -54,13 +39,12 @@ window.openJoinPopup = () => {
 
 window.showScreen = (id) => {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    const target = document.getElementById(id);
-    if (target) target.style.display = 'flex';
+    document.getElementById(id).style.display = 'flex';
 };
 
 window.triggerBust = () => {
     busted = !busted;
-    if(busted) { usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; }
+    if(busted) { usedCards = []; bonuses = []; mult = 1; }
     updateUI();
 };
 
@@ -74,14 +58,11 @@ window.closeCelebration = () => document.getElementById('celebration-overlay').s
 window.resumeGame = () => joinGame(gameCode);
 window.leaveGame = () => { if(confirm("Leave?")) { localStorage.removeItem('f7_code'); location.reload(); }};
 
-// --- INTERNAL LOGIC ---
-
+// Core Logic
 async function joinGame(code) {
     const pRef = ref(db, `games/${code}/players/${myName}`);
     const snap = await get(pRef);
-    if (!snap.exists()) {
-        await set(pRef, { name: myName, history: [0], submitted: false });
-    }
+    if (!snap.exists()) await set(pRef, { name: myName, history: [0], submitted: false });
     onValue(ref(db, `games/${code}`), syncApp);
 }
 
@@ -97,18 +78,11 @@ function updateUI() {
     if(!hasF7) hasCelebrated = false;
 
     let roundScore = busted ? 0 : (sum * mult) + totalB + (hasF7 ? 15 : 0);
+    document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
+    document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
     
-    const rDisp = document.getElementById('round-display');
-    const gDisp = document.getElementById('grand-display');
-    const bustBtn = document.getElementById('bust-toggle-btn');
-
-    if (rDisp) rDisp.innerText = busted ? "BUST" : roundScore;
-    if (gDisp) gDisp.innerText = currentGrandTotal + roundScore;
-    if (bustBtn) bustBtn.className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
-
-    const banner = document.getElementById('flip7-banner');
-    if (banner) banner.style.display = (hasF7 && !busted) ? 'block' : 'none';
-
+    document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
+    
     const grid = document.getElementById('cardGrid');
     if(grid) {
         for(let i=0; i<=12; i++) {
@@ -117,9 +91,7 @@ function updateUI() {
         }
     }
     
-    const m2Btn = document.getElementById('btn-m2');
-    if (m2Btn) m2Btn.className = (mult === 2) ? "mod-btn-active" : "";
-    
+    document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
     [2,4,6,8,10].forEach(v => {
         const b = document.getElementById('btn-p' + v);
         if(b) b.className = bonuses.includes(v) ? "mod-btn-active" : "";
@@ -128,9 +100,10 @@ function updateUI() {
 
 function syncApp(snap) {
     const data = snap.val(); if(!data) return;
+    const playersArr = Object.values(data.players || {});
     const me = data.players[myName]; if(!me) return;
-    const playersArr = Object.values(data.players);
 
+    // Fixed History Summing
     currentGrandTotal = (me.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0);
     
     if (data.status === "waiting") {
@@ -153,8 +126,20 @@ function syncApp(snap) {
         document.getElementById('leaderboard').innerHTML = sorted.map(p => `
             <div class="p-row ${p.total >= 200 ? 'threshold-reached' : ''}">
                 <b>${p.name} ${p.submitted ? '✅' : '⏳'}</b>
-                <span>${p.total} ${p.total >= 200 ? '🔥' : 'pts'}</span>
+                <span>${p.total} pts</span>
             </div>`).join("");
+        
+        // Build History Logs (Fixed property access)
+        let hHTML = "";
+        for (let r = data.roundNum; r >= 1; r--) {
+            let rows = playersArr.map(p => {
+                let scoreObj = p.history && p.history[r];
+                let scoreVal = scoreObj ? (typeof scoreObj === 'object' ? scoreObj.score : scoreObj) : 0;
+                return `<div class="history-row"><span>${p.name}</span><b>${scoreVal}</b></div>`;
+            }).join("");
+            hHTML += `<div class="history-block" onclick="window.revertToRound(${r})"><span class="round-label">ROUND ${r}</span>${rows}</div>`;
+        }
+        document.getElementById('history-log-container').innerHTML = hHTML;
         
         document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
     }
@@ -165,11 +150,9 @@ window.submitRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const rNum = snap.val().roundNum;
     const score = busted ? 0 : (usedCards.reduce((a,b)=>a+b, 0) * mult) + bonuses.reduce((a,b)=>a+b, 0) + (usedCards.length === 7 ? 15 : 0);
-    
     const roundState = { score, usedCards: [...usedCards], bonuses: [...bonuses], mult, busted };
     let h = snap.val().players[myName].history || [0];
     h[rNum] = roundState;
-    
     await update(ref(db, `games/${gameCode}/players/${myName}`), { history: h, submitted: true });
     usedCards = []; bonuses = []; mult = 1; busted = false; updateUI();
 };
@@ -181,19 +164,34 @@ window.readyForNextRound = async () => {
     await update(ref(db), up);
 };
 
-// Initialize
+window.revertToRound = async (r) => {
+    const snap = await get(ref(db, `games/${gameCode}`));
+    const data = snap.val();
+    if (data.host === myName && confirm(`Rewind to Round ${r}?`)) {
+        const up = { [`games/${gameCode}/roundNum`]: r };
+        for (let p in data.players) {
+            up[`games/${gameCode}/players/${p}/history`] = (data.players[p].history || [0]).slice(0, r + 1);
+            up[`games/${gameCode}/players/${p}/submitted`] = false;
+        }
+        await update(ref(db), up);
+        // Local restore for the host
+        const saved = data.players[myName].history[r];
+        if (saved && typeof saved === 'object') {
+            usedCards = saved.usedCards || []; bonuses = saved.bonuses || [];
+            mult = saved.mult || 1; busted = saved.busted || false;
+        }
+        window.showScreen('game-screen');
+        updateUI();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
-    if(nInput) {
-        nInput.value = myName;
-        nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); };
-    }
+    if(nInput) { nInput.value = myName; nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); }; }
     const grid = document.getElementById('cardGrid');
-    if (grid) {
-        for(let i=0; i<=12; i++){
-            let btn = document.createElement('button'); btn.innerText = i;
-            btn.onclick = () => { busted = false; if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); else if(usedCards.length < 7) usedCards.push(i); updateUI(); };
-            grid.appendChild(btn);
-        }
+    for(let i=0; i<=12; i++){
+        let btn = document.createElement('button'); btn.innerText = i;
+        btn.onclick = () => { busted = false; if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); else if(usedCards.length < 7) usedCards.push(i); updateUI(); };
+        grid.appendChild(btn);
     }
 });

@@ -11,12 +11,22 @@
         <h1>Flip 7 Share</h1>
         <div class="setup-section">
             <p>Enter Player Name:</p>
-            <input type="text" id="userNameInput" placeholder="Tap to type name..." class="name-input-field">
+            <input type="text" id="userNameInput" placeholder="Tap to type name..." class="name-input-field" enterkeyhint="done">
         </div>
+
+        <div id="host-setup-area" class="host-setup-container">
+            <p>How many players?</p>
+            <div class="counter-row">
+                <button class="counter-btn" onclick="adjustCount(-1)">−</button>
+                <div id="playerCountDisplay" class="count-display">4</div>
+                <button class="counter-btn" onclick="adjustCount(1)">+</button>
+            </div>
+            <button class="big-btn host-btn" onclick="hostGameFromUI()">HOST NEW GAME</button>
+        </div>
+
         <div class="action-section">
-            <button class="big-btn host-btn" onclick="askPlayerCount()">HOST NEW GAME</button>
             <button class="big-btn join-btn" onclick="openJoinPopup()">JOIN EXISTING</button>
-            <button id="resume-btn" class="resume-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
+            <button id="resume-btn" class="resume-btn big-btn" style="display:none;" onclick="resumeGame()">RESUME ACTIVE GAME</button>
         </div>
     </div>
 
@@ -58,9 +68,7 @@
             </div>
 
             <div id="waiting-view" style="display:none;">
-                <div class="summary-header">
-                    <h2>Leaderboard</h2>
-                </div>
+                <h2>Leaderboard</h2>
                 <div id="leaderboard"></div>
                 <div id="host-end-game-container"></div>
                 <button id="nextRoundBtn" class="next-round-btn" style="display:none;" onclick="readyForNextRound()">NEXT ROUND</button>

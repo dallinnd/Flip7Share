@@ -14,12 +14,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// --- APP STATE ---
+// --- State ---
 let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f7_name') || "";
 let usedCards = [], bonuses = [], mult = 1, busted = false;
 let targetPlayerCount = 4;
 
-// --- INITIALIZATION ---
+// --- Init & Keyboard ---
 const nInput = document.getElementById('userNameInput');
 if(nInput) {
     nInput.value = myName;
@@ -33,24 +33,21 @@ window.showScreen = (id) => {
     document.getElementById(id).style.display = 'flex';
 };
 
-// --- COUNTER LOGIC ---
 window.adjustCount = (val) => {
     targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + val));
     document.getElementById('playerCountDisplay').innerText = targetPlayerCount;
 };
 
+// --- Networking ---
 window.hostGameFromUI = () => {
     if(!myName || myName.trim() === "") { alert("Enter your name first!"); return; }
     hostGame(targetPlayerCount);
 };
 
-// --- CORE NETWORKING ---
 async function hostGame(target) {
     gameCode = Math.floor(100000 + Math.random() * 900000);
     localStorage.setItem('f7_code', gameCode);
-    await set(ref(db, `games/${gameCode}`), { 
-        host: myName, targetCount: target, status: "waiting", roundNum: 1 
-    });
+    await set(ref(db, `games/${gameCode}`), { host: myName, targetCount: target, status: "waiting", roundNum: 1 });
     joinGame(gameCode);
 }
 
@@ -65,13 +62,11 @@ window.resumeGame = () => joinGame(gameCode);
 async function joinGame(code) {
     const pRef = ref(db, `games/${code}/players/${myName}`);
     const snap = await get(pRef);
-    if (!snap.exists()) {
-        await set(pRef, { name: myName, history: [0, 0], submitted: false });
-    }
+    if (!snap.exists()) await set(pRef, { name: myName, history: [0, 0], submitted: false });
     onValue(ref(db, `games/${code}`), syncApp);
 }
 
-// --- CALCULATOR ---
+// --- Calc Logic ---
 window.toggleMod = (id, val) => {
     if(id === 'm2') mult = (mult === 2) ? 1 : 2;
     else {
@@ -88,7 +83,7 @@ window.triggerBust = () => {
     updateUI(); 
 };
 
-// Auto-grid generation
+// Grid Gen
 const grid = document.getElementById('cardGrid');
 if (grid && grid.children.length === 0) {
     for(let i=1; i<=12; i++){
@@ -104,9 +99,16 @@ if (grid && grid.children.length === 0) {
 function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let totalB = bonuses.reduce((a, b) => a + b, 0);
-    let total = busted ? 0 : (sum * mult) + totalB;
+    const hasFlip7 = (usedCards.length === 7);
+    const flip7Bonus = hasFlip7 ? 15 : 0;
+    
+    let total = busted ? 0 : (sum * mult) + totalB + flip7Bonus;
+    
+    document.getElementById('flip7-banner').style.display = (hasFlip7 && !busted) ? 'block' : 'none';
     const d = document.getElementById('calc-display');
-    d.innerText = busted ? "BUST!" : total; d.style.color = busted ? "#ff4444" : "white";
+    d.innerText = busted ? "BUST!" : total;
+    d.style.color = busted ? "#ff4444" : (hasFlip7 ? "var(--gold)" : "white");
+
     for(let i=1; i<=12; i++) {
         const b = document.getElementById('c-'+i);
         if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
@@ -117,7 +119,7 @@ function updateUI() {
     });
 }
 
-// --- SYNC & TIME MACHINE ---
+// --- Sync & Round Management ---
 function syncApp(snap) {
     const data = snap.val(); if(!data) { localStorage.removeItem('f7_code'); location.reload(); return; }
     const players = Object.values(data.players || {});
@@ -127,24 +129,19 @@ function syncApp(snap) {
         showScreen('lobby-screen');
         document.getElementById('roomDisplayLobby').innerText = "Game: " + gameCode;
         document.getElementById('lobby-status').innerText = `Joined: ${players.length} / ${data.targetCount}`;
-        document.getElementById('player-list').innerHTML = players.map(p => `
-            <div class="p-tag">${p.name} ${(data.host === myName && p.name !== myName) ? `<span class="remove-player-btn" onclick="removePlayer('${p.name}')">×</span>` : ""}</div>
-        `).join("");
+        document.getElementById('player-list').innerHTML = players.map(p => `<div class="p-tag">${p.name}</div>`).join("");
         if(players.length >= data.targetCount && data.host === myName) update(ref(db, `games/${gameCode}`), {status: "active"});
         return;
     }
 
     showScreen('game-screen');
     document.getElementById('roomCodeDisplay').innerText = `GAME: ${gameCode} | R${data.roundNum}`;
-    document.getElementById('host-end-game-container').innerHTML = (data.host === myName) ? `<button class="host-danger-btn big-btn" onclick="endGame()">END GAME FOR ALL</button>` : "";
 
-    // Leaderboard
     let lb = document.getElementById('leaderboard'); lb.innerHTML = "";
     players.map(p => ({ ...p, total: (p.history || []).reduce((a,b)=>a+b, 0) })).sort((a,b)=>b.total-a.total).forEach(p => {
         lb.innerHTML += `<div class="p-row ${p.name === myName ? 'is-me' : ''}"><div><b>${p.name} ${p.submitted ? '✅' : '⏳'}</b><br><small>Round: +${p.history[data.roundNum] || 0}</small></div><div style="font-size:1.5rem;font-weight:800;">${p.total}</div></div>`;
     });
 
-    // History
     let hLog = document.getElementById('history-log-container'); hLog.innerHTML = "";
     for (let r = data.roundNum; r >= 1; r--) {
         let rH = `<div class="history-block" ${data.host === myName ? `onclick="revertToRound(${r})"` : ''}><span class="round-label">Round ${r} ${data.host === myName ? '↩️' : ''}</span>`;
@@ -160,7 +157,9 @@ function syncApp(snap) {
 window.submitRound = async () => {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let totalB = bonuses.reduce((a, b) => a + b, 0);
-    let score = busted ? 0 : (sum * mult) + totalB;
+    const flip7Bonus = (usedCards.length === 7) ? 15 : 0;
+    let score = busted ? 0 : (sum * mult) + totalB + flip7Bonus;
+    
     const snap = await get(ref(db, `games/${gameCode}`));
     const data = snap.val();
     let h = data.players[myName].history || [0];
@@ -198,5 +197,3 @@ window.revertToRound = async (r) => {
 };
 
 window.leaveGame = () => { localStorage.removeItem('f7_code'); location.reload(); };
-window.endGame = async () => { if(confirm("End for all?")) { await set(ref(db, `games/${gameCode}`), null); location.reload(); }};
-window.removePlayer = (pName) => { if(confirm(`Remove ${pName}?`)) set(ref(db, `games/${gameCode}/players/${pName}`), null); };

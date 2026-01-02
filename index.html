@@ -1,28 +1,31 @@
 <div id="welcome-screen" class="screen">
     <h1>Flip 7 Share</h1>
-    <div class="name-container">
-        <input type="text" id="userNameInput" value="Player1" readonly>
-        <button id="editNameBtn">✏️</button>
+    <div class="name-edit-box">
+        <input type="text" id="userNameInput" value="Player" readonly>
+        <button id="editNameBtn" onclick="toggleNameEdit()">✏️</button>
     </div>
-    <button id="startBtn">Enter Lobby</button>
+    <button onclick="showScreen('menu-screen')">Start</button>
 </div>
 
 <div id="game-screen" class="screen" style="display:none;">
     <div id="host-controls" style="display:none;">
-        <button onclick="changeRound(1)" class="round-btn next">Next Round</button>
-        <button onclick="changeRound(-1)" class="round-btn prev">Previous Round</button>
+        <button class="round-btn next" onclick="updateRound(1)">Next Round</button>
+        <button class="round-btn prev" onclick="updateRound(-1)">Prev Round</button>
     </div>
-    
-    <div class="calculator">
-        <div id="current-calc-display">0</div>
-        <div class="card-grid">
-            <button class="num-card" onclick="addNum(1)">1</button> ... 
-            <button class="num-card" onclick="addNum(12)">12</button>
-            <button class="mod-card" onclick="addMod(2)">+2</button>
-            <button class="mod-card" onclick="multiply()">×2</button>
-            <button class="bust-btn" onclick="triggerBust()">BUST</button>
+
+    <div class="calc-container">
+        <div id="calc-display">Total: 0</div>
+        <div class="button-grid">
+            <div id="num-buttons"></div> 
+            <button onclick="setMultiplier(2)" class="mod-btn">×2</button>
+            <button onclick="addMod(2)" class="mod-btn">+2</button>
+            <button onclick="addMod(4)" class="mod-btn">+4</button>
+            <button onclick="addMod(6)" class="mod-btn">+6</button>
+            <button onclick="addMod(8)" class="mod-btn">+8</button>
+            <button onclick="addMod(10)" class="mod-btn">+10</button>
+            <button onclick="handleBust()" class="bust-btn">BUST</button>
         </div>
-        <button id="submitScore">Submit Round Total</button>
+        <button id="submitBtn" onclick="submitScore()">Submit Round</button>
     </div>
 
     <div id="leaderboard"></div>

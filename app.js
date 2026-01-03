@@ -14,26 +14,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// --- State Variables ---
 let myName = localStorage.getItem('f7_name') || "";
 let gameCode = null;
 let activeGames = JSON.parse(localStorage.getItem('f7_game_list')) || [];
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-function calculateCurrentScore() {
-    if (busted) return 0;
-    const sum = usedCards.reduce((a, b) => a + b, 0);
-    const totalB = bonuses.reduce((a, b) => a + b, 0);
-    const f7Bonus = (usedCards.length === 7) ? 15 : 0;
-    return (sum * mult) + totalB + f7Bonus;
-}
-
-// --- GLOBAL EXPORTS ---
+// --- GLOBAL EXPORTS (Fixes the Buttons) ---
 window.adjustCount = (v) => {
     targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + v));
     const display = document.getElementById('playerCountDisplay');
     if (display) display.innerText = targetPlayerCount;
 };
+
+window.deleteGame = (code) => {
+    if (confirm(`Remove Game ${code}?`)) {
+        activeGames = activeGames.filter(c => c !== String(code));
+        localStorage.setItem('f7_game_list', JSON.stringify(activeGames));
+        renderGameList();
+    }
+};
+
+window.deleteAllGames = () => {
+    if (confirm("Delete ALL games from your list?")) {
+        activeGames = [];
+        localStorage.setItem('f7_game_list', JSON.stringify([]));
+        renderGameList();
+    }
+};
+
+window.resumeSpecificGame = (code) => joinGame(code);
 
 window.showEndPrompt = () => {
     document.getElementById('end-game-overlay').style.display = 'flex';
@@ -44,8 +55,6 @@ window.rematch = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const players = snap.val().players;
     const updates = {};
-    
-    // Reset rounds and player histories
     updates[`games/${gameCode}/roundNum`] = 1;
     updates[`games/${gameCode}/status`] = "active";
     for (let p in players) {
@@ -53,7 +62,6 @@ window.rematch = async () => {
         updates[`games/${gameCode}/players/${p}/submitted`] = false;
         updates[`games/${gameCode}/players/${p}/liveScore`] = 0;
     }
-    
     await update(ref(db), updates);
     document.getElementById('end-game-overlay').style.display = 'none';
 };
@@ -81,21 +89,30 @@ window.openJoinPopup = () => {
     if(c && myName) joinGame(c);
 };
 
+// --- Helper Logic ---
+function calculateCurrentScore() {
+    if (busted) return 0;
+    const sum = usedCards.reduce((a, b) => a + b, 0);
+    const totalB = bonuses.reduce((a, b) => a + b, 0);
+    const f7Bonus = (usedCards.length === 7) ? 15 : 0;
+    return (sum * mult) + totalB + f7Bonus;
+}
+
 function saveToGameList(code) {
-    if (!activeGames.includes(code)) {
-        activeGames.push(code);
+    if (!activeGames.includes(String(code))) {
+        activeGames.push(String(code));
         localStorage.setItem('f7_game_list', JSON.stringify(activeGames));
     }
     renderGameList();
 }
 
 async function joinGame(code) {
-    gameCode = code; 
-    saveToGameList(code);
-    const pRef = ref(db, `games/${code}/players/${myName}`);
+    gameCode = String(code); 
+    saveToGameList(gameCode);
+    const pRef = ref(db, `games/${gameCode}/players/${myName}`);
     const snap = await get(pRef);
     if (!snap.exists()) await set(pRef, { name: myName, history: [0], submitted: false });
-    onValue(ref(db, `games/${code}`), syncApp);
+    onValue(ref(db, `games/${gameCode}`), syncApp);
 }
 
 function renderGameList() {
@@ -111,8 +128,7 @@ function renderGameList() {
         </div>`).join("");
 }
 
-window.resumeSpecificGame = (code) => joinGame(code);
-
+// --- Sync & UI Logic ---
 function syncApp(snap) {
     const data = snap.val(); if(!data) return;
     gameCode = snap.key;
@@ -159,7 +175,6 @@ function syncApp(snap) {
                 <span>${p.isBusted ? 'BUST' : p.displayTotal + ' pts'}</span>
             </div>`).join("");
 
-        // Control buttons for host
         const isAllSubmitted = playersArr.every(p => p.submitted);
         const nextBtn = document.getElementById('nextRoundBtn');
         const finishBtn = document.getElementById('finishGameBtn');
@@ -214,6 +229,7 @@ function updateUI() {
     });
 }
 
+// --- Interaction Exports ---
 window.submitRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const rNum = snap.val().roundNum;
@@ -255,6 +271,7 @@ window.toggleMod = (id, val) => { if(id === 'm2') mult = (mult === 2) ? 1 : 2; e
 window.leaveGame = () => { if(confirm("Leave game?")) location.reload(); };
 window.closeCelebration = () => document.getElementById('celebration-overlay').style.display = 'none';
 
+// --- Init UI ---
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) { 

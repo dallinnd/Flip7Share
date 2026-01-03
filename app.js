@@ -20,6 +20,64 @@ let targetPlayerCount = 4, hasCelebrated = false;
 
 const vib = (ms = 15) => { if(navigator.vibrate) navigator.vibrate(ms); };
 
+// --- UI NAVIGATION ---
+window.showScreen = (id) => {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'flex';
+};
+
+// --- JOIN LOGIC (FIXED) ---
+window.openJoinPopup = () => {
+    if(!myName || myName.trim() === "") {
+        alert("PLEASE ENTER YOUR NAME FIRST!");
+        return;
+    }
+    let c = prompt("Enter 6-digit code:");
+    if(c && c.trim() !== "") { 
+        gameCode = c.trim(); 
+        joinGame(gameCode); 
+    }
+};
+
+async function joinGame(code) {
+    const gameRef = ref(db, `games/${code}`);
+    const gameSnap = await get(gameRef);
+    
+    if (!gameSnap.exists()) {
+        alert("GAME NOT FOUND! Check the code.");
+        localStorage.removeItem('f7_code');
+        return;
+    }
+
+    localStorage.setItem('f7_code', code);
+    const pRef = ref(db, `games/${code}/players/${myName}`);
+    const pSnap = await get(pRef);
+    
+    if (!pSnap.exists()) {
+        await set(pRef, { name: myName, history: [0], submitted: false });
+    }
+    
+    onValue(gameRef, syncApp);
+}
+
+window.resumeGame = () => { if(gameCode) joinGame(gameCode); };
+
+window.leaveGame = () => {
+    if(confirm("Leave the lobby and return home?")) {
+        vib(30);
+        localStorage.removeItem('f7_code');
+        location.reload(); 
+    }
+};
+
+window.clearSession = () => { 
+    if(confirm("Clear current session?")) { 
+        localStorage.removeItem('f7_code'); 
+        location.reload(); 
+    }
+};
+
+// --- HOSTING & COUNTERS ---
 window.adjustCount = (v) => {
     let newVal = targetPlayerCount + v;
     if (newVal >= 1 && newVal <= 20) {
@@ -41,16 +99,7 @@ window.hostGameFromUI = async () => {
     } catch (e) { alert("Hosting failed!"); }
 };
 
-window.openJoinPopup = () => {
-    let c = prompt("Enter 6-digit code:");
-    if(c && myName) { gameCode = c; localStorage.setItem('f7_code', c); joinGame(c); }
-};
-
-window.showScreen = (id) => {
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    document.getElementById(id).style.display = 'flex';
-};
-
+// --- GAMEPLAY CALC ---
 window.triggerBust = () => {
     vib(40);
     busted = !busted;
@@ -97,9 +146,21 @@ function updateUI() {
     });
 }
 
+// --- SYNC ---
 function syncApp(snap) {
-    const data = snap.val(); if(!data || data.status === "closed") { location.reload(); return; }
-    const me = data.players[myName]; if(!me) return;
+    const data = snap.val(); 
+    if(!data) return; // Silent return if game data is missing
+    
+    if(data.status === "closed") { 
+        alert("Game has been ended.");
+        localStorage.removeItem('f7_code');
+        location.reload(); 
+        return; 
+    }
+    
+    const me = data.players[myName]; 
+    if(!me) return;
+
     const playersArr = Object.values(data.players || {});
 
     currentGrandTotal = (me.history || []).reduce((acc, entry, idx) => {
@@ -164,19 +225,16 @@ window.editCurrentRound = async () => {
     const myData = data.players[myName];
     const saved = myData.history[data.roundNum];
     if (saved) {
-        usedCards = saved.usedCards || [];
-        bonuses = saved.bonuses || [];
-        mult = saved.mult || 1;
-        busted = saved.busted || false;
+        usedCards = saved.usedCards || []; bonuses = saved.bonuses || [];
+        mult = saved.mult || 1; busted = saved.busted || false;
         await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
         updateUI();
     }
 };
 
-window.resumeGame = () => { if(gameCode) joinGame(gameCode); };
-window.clearSession = () => { if(confirm("Clear session?")) { localStorage.removeItem('f7_code'); location.reload(); }};
 window.closeCelebration = () => { document.getElementById('celebration-overlay').style.display = 'none'; };
 
+// --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) {

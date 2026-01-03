@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyConuxhGCtGvJaa6TZ1bkUvlOhhTdyTgZE",
@@ -23,7 +23,6 @@ let targetPlayerCount = 4, hasCelebrated = false;
 
 // --- Helper: Force UI Code Update ---
 function updateCodeUI(code, round = 1) {
-    if (!code) return;
     const lobbyDisp = document.getElementById('roomDisplayLobby');
     const gameDisp = document.getElementById('roomCodeDisplay');
     if (lobbyDisp) lobbyDisp.innerText = "Game: " + code;
@@ -39,16 +38,27 @@ function saveToGameList(code) {
     renderGameList();
 }
 
-window.deleteGame = (code) => {
-    if (confirm(`Remove Game ${code}?`)) {
+window.deleteGame = async (code) => {
+    try {
+        const gameRef = ref(db, `games/${code}`);
+        const snap = await get(gameRef);
+        
+        if (snap.exists() && snap.val().host === myName) {
+            if (confirm(`You are the HOST. Delete Game ${code} from the SERVER?`)) {
+                await remove(gameRef);
+            }
+        } else {
+            if (!confirm(`Remove Game ${code} from your local list?`)) return;
+        }
+
         activeGames = activeGames.filter(c => c !== code);
         localStorage.setItem('f7_game_list', JSON.stringify(activeGames));
         renderGameList();
-    }
+    } catch (e) { alert("Delete failed: " + e.message); }
 };
 
 window.deleteAllGames = () => {
-    if (confirm("Delete ALL games?")) {
+    if (confirm("Delete all local game shortcuts?")) {
         activeGames = [];
         localStorage.setItem('f7_game_list', JSON.stringify([]));
         renderGameList();
@@ -109,7 +119,13 @@ function updateUI() {
 }
 
 function syncApp(snap) {
-    const data = snap.val(); if(!data) return;
+    const data = snap.val(); 
+    if(!data) { 
+        alert("Game has ended."); 
+        location.reload(); 
+        return; 
+    }
+    
     gameCode = snap.key;
     updateCodeUI(gameCode, data.roundNum);
 
@@ -145,7 +161,6 @@ function syncApp(snap) {
             </div>`).join("");
         document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
     }
-    updateUI();
 }
 
 window.submitRound = async () => {

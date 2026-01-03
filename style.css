@@ -1,100 +1,263 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Flip 7 Share Pro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div id="celebration-overlay" class="overlay" style="display:none;" onclick="window.closeCelebration()">
-        <div class="celebration-content">
-            <div class="emoji-bounce">🃏</div>
-            <h1>FLIP 7!</h1>
-            <h2 class="bonus-text">+15 POINTS</h2>
-            <p>Tap to continue</p>
-        </div>
-    </div>
+:root { 
+    --teal: #008080; 
+    --green: #2e8b57; 
+    --orange: #ff8c00; 
+    --gold: #ffd700; 
+    --danger: #ff4444;
+    --glass: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.3);
+}
 
-    <div id="home-screen" class="screen">
-        <h1>Flip 7 Share</h1>
-        <div class="input-group">
-            <label>PLAYER NAME</label>
-            <input type="text" id="userNameInput" placeholder="TYPE NAME HERE" class="name-input-field" autocomplete="off" autocapitalize="words">
-        </div>
-        <div class="home-spacer"></div> 
-        <div class="host-card">
-            <label>NEW GAME SETUP</label>
-            <div class="counter-row">
-                <button class="counter-btn" onclick="window.adjustCount(-1)">−</button>
-                <div id="playerCountDisplay" class="count-display">4</div>
-                <button class="counter-btn" onclick="window.adjustCount(1)">+</button>
-            </div>
-            <button class="big-btn host-btn" style="background: white; color: var(--teal);" onclick="window.hostGameFromUI()">HOST NEW GAME</button>
-        </div>
-        <div class="home-footer">
-            <button class="big-btn join-btn" style="background: var(--glass); color: white;" onclick="window.openJoinPopup()">JOIN EXISTING</button>
-            <div id="game-manager" style="display:none; width:100%; margin-top:20px;">
-                <label class="manager-label">YOUR ACTIVE GAMES</label>
-                <div id="game-list-container"></div>
-                <button class="delete-all-btn" onclick="window.deleteAllGames()">DELETE ALL GAMES</button>
-            </div>
-        </div>
-    </div>
+* { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+    user-select: none; 
+}
 
-    <div id="game-screen" class="screen" style="display:none;">
-        <div class="top-nav">
-            <button class="nav-btn-themed" onclick="window.showScreen('home-screen')">HOME</button>
-            <div id="roomCodeDisplay" class="nav-code" style="font-weight:900; opacity:0.8;">CODE: ------</div>
-            <div style="width:70px;"></div> 
-        </div>
-        <div class="main-scroll-area">
-            <div id="calc-view">
-                <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS! (+15)</div>
-                <div class="card-grid" id="cardGrid"></div> 
-                <button class="big-btn bust-btn" id="bust-toggle-btn" onclick="window.triggerBust()">BUST</button>
-                <div class="mod-grid">
-                    <button id="btn-m2" onclick="window.toggleMod('m2', 2)">×2</button>
-                    <button id="btn-p2" onclick="window.toggleMod('p2', 2)">+2</button>
-                    <button id="btn-p4" onclick="window.toggleMod('p4', 4)">+4</button>
-                    <button id="btn-p6" onclick="window.toggleMod('p6', 6)">+6</button>
-                    <button id="btn-p8" onclick="window.toggleMod('p8', 8)">+8</button>
-                    <button id="btn-p10" onclick="window.toggleMod('p10', 10)">+10</button>
-                </div>
-                <div class="section-spacer"></div>
-                <div class="totals-row">
-                    <div class="total-box round-container">
-                        <small>ROUND</small>
-                        <div id="round-display">0</div>
-                    </div>
-                    <div class="total-box grand-container">
-                        <small>GRAND</small>
-                        <div id="grand-display">0</div>
-                    </div>
-                </div>
-                <div class="section-spacer"></div>
-                <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
-            </div>
-            <div id="waiting-view" style="display:none;">
-                <div class="leaderboard-header">
-                    <h2>Leaderboard</h2>
-                    <button class="nav-btn-themed" onclick="window.editScore()">EDIT SCORE</button>
-                </div>
-                <div id="leaderboard"></div>
-                <div class="section-spacer"></div> 
-                <button id="nextRoundBtn" class="big-btn next-btn" style="background: var(--gold); color: #443300; display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
-            </div>
-        </div>
-    </div>
+body { 
+    margin: 0; 
+    background: radial-gradient(circle at top left, var(--teal), var(--green)); 
+    color: white; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    min-height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    overflow-x: hidden; 
+}
 
-    <div id="lobby-screen" class="screen" style="display:none;">
-        <h2 id="roomDisplayLobby">Game: ------</h2>
-        <div id="lobby-status" class="lobby-count" style="font-size: 1.2rem; font-weight: 900; margin-bottom: 10px;">Joined: 0 / 0</div>
-        <div id="player-list" class="player-list"></div>
-        <p class="pulse">Waiting for players...</p>
-        <button class="nav-btn-themed" onclick="window.leaveGame()">Leave Lobby</button>
-    </div>
+/* --- Global Button Aesthetic & Pop Effect --- */
+button {
+    touch-action: manipulation;
+    cursor: pointer;
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    
+    /* The "Spring" release animation */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                background 0.2s ease, 
+                box-shadow 0.2s ease, 
+                color 0.2s ease, 
+                border-color 0.2s ease;
+    /* Ensure transform originates from center for a clean pop */
+    transform-origin: center center;
+}
 
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+button:active { 
+    /* Fast press-in animation */
+    transform: scale(0.94); 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.1s ease-out, background 0.1s ease;
+}
+
+.screen { 
+    width: 95%; 
+    max-width: 450px; 
+    margin: 15px auto; 
+    padding: 25px; 
+    background: rgba(255,255,255,0.08); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 35px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3); 
+}
+
+/* --- HOME UI --- */
+.name-input-field { 
+    width: 100%; 
+    padding: 20px; 
+    border-radius: 22px; 
+    border: 2px solid transparent; 
+    font-size: 1.6rem; 
+    font-weight: 900; 
+    text-align: center; 
+    color: var(--teal); 
+    background: rgba(255, 255, 255, 0.95); 
+    margin-top: 10px; 
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+    user-select: text;
+}
+
+.input-group label { 
+    display: block; 
+    font-weight: 900; 
+    opacity: 0.8; 
+    letter-spacing: 1px; 
+    font-size: 0.75rem; 
+    margin-top: 10px; 
+}
+
+.host-card { 
+    background: rgba(0,0,0,0.1); 
+    padding: 25px; 
+    border-radius: 28px; 
+    border: 1px solid var(--glass-border);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    width: 100%; 
+}
+
+.counter-row { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 30px; 
+    margin-bottom: 25px; 
+    width: 100%; 
+}
+
+.counter-btn { 
+    width: 70px; 
+    height: 70px; 
+    border-radius: 20px; 
+    font-size: 2.2rem; 
+    background: linear-gradient(145deg, #ffffff, #e6e6e6);
+    color: var(--teal); 
+    font-weight: bold; 
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.1), -2px -2px 10px rgba(255,255,255,0.5);
+}
+
+.count-display { 
+    font-size: 3.8rem; 
+    font-weight: 900; 
+    min-width: 80px; 
+    text-align: center; 
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* --- CALCULATOR TILES --- */
+.card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.card-grid button { 
+    background: var(--glass);
+    color: white; 
+    padding: 22px 0; 
+    border-radius: 20px; 
+    font-weight: 900; 
+    font-size: 1.6rem; 
+    min-height: 75px; 
+    border: 1px solid var(--glass-border);
+}
+
+/* Special styling for selected card */
+.card-active-style {
+    background: linear-gradient(145deg, var(--teal), #006666) !important;
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 20px rgba(0, 128, 128, 0.6) !important;
+    transform: scale(1.02); /* Slight permanent pop when active */
+}
+
+.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.mod-grid button { 
+    background: rgba(0,0,0,0.2); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    color: white; 
+    border-radius: 15px; 
+    font-weight: 800; 
+    font-size: 1.1rem;
+    padding: 15px;
+}
+
+.mod-btn-active { 
+    background: linear-gradient(145deg, var(--orange), #cc7000) !important; 
+    border-color: white !important; 
+    box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4);
+    transform: scale(1.02);
+}
+
+/* --- TOTALS --- */
+.totals-row { display: flex; gap: 15px; width: 100%; }
+.total-box { 
+    flex: 1; 
+    border-radius: 24px; 
+    padding: 18px; 
+    text-align: center; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.round-container {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.grand-container {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0); 
+    color: var(--teal); 
+    border: none; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+    transform: scale(1.02); /* Slightly larger emphasis */
+}
+
+.total-box div { font-size: 2.4rem; font-weight: 900; }
+.total-box small { font-weight: 900; opacity: 0.7; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 5px; display: block;}
+
+/* --- ACTION BUTTONS --- */
+.big-btn { 
+    width: 100%; 
+    padding: 24px; 
+    border-radius: 24px; 
+    border: none; 
+    font-weight: 900; 
+    font-size: 1.4rem; 
+    text-transform: uppercase; 
+    letter-spacing: 1px;
+}
+
+.submit-btn { 
+    background: linear-gradient(145deg, var(--orange), #e67e00); 
+    color: white; 
+    box-shadow: 0 8px 20px rgba(255, 140, 0, 0.3);
+    border-top: 1px solid rgba(255,255,255,0.3);
+}
+
+.bust-btn { 
+    background: rgba(255,255,255,0.05); 
+    border: 2px solid white !important; 
+    height: 80px; 
+    font-size: 1.6rem; 
+    color: white;
+    margin: 15px 0 25px 0 !important; 
+}
+
+.bust-active { 
+    background: linear-gradient(145deg, var(--danger), #cc0000) !important; 
+    border-color: transparent !important; 
+    box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
+}
+
+/* --- LEADERBOARD & NAV --- */
+.leaderboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); }
+.p-row { display: flex; justify-content: space-between; padding: 18px; background: rgba(0,0,0,0.2); margin-bottom: 8px; border-radius: 18px; align-items: center; border: 1px solid transparent;}
+.busted-row { background: rgba(255, 68, 68, 0.15) !important; border-color: var(--danger) !important; }
+.live-icon { color: var(--gold); animation: pulse-live 1s infinite; margin-left: 5px; display: inline-block; }
+@keyframes pulse-live { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+
+.top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.nav-btn-themed { background: var(--glass); border-radius: 14px; padding: 10px 16px; font-size: 0.8rem; font-weight: 800;}
+
+/* --- UTILS --- */
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
+.celebration-content { background: rgba(255,255,255,0.95); color: var(--teal); padding: 40px; border-radius: 35px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.5); max-width: 85%; border: 1px solid white; }
+.emoji-bounce { font-size: 4rem; animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: block; margin-bottom: 10px; }
+@keyframes bounce-in { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.bonus-text { color: var(--orange); font-weight: 900; font-size: 1.8rem; margin: 10px 0; }
+.banner { background: linear-gradient(90deg, var(--gold), #ffcc00); color: #443300; padding: 14px; border-radius: 15px; font-weight: 900; font-size: 0.9rem; margin-bottom: 15px; text-align: center; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2); animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes pop-in { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.section-spacer { height: 25px; }
+.home-spacer { height: 15px; }
+/* Game manager items */
+.game-item { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 12px 15px; border-radius: 15px; border: 1px solid var(--glass-border); }
+.game-info { font-weight: 900; font-size: 1.1rem; cursor: pointer; flex: 1; }
+.delete-single-btn { background: var(--danger); color: white; border: none; width: 40px; height: 40px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; }
+.delete-all-btn { width: 100%; margin-top: 15px; padding: 15px; background: var(--danger); color: white; border-radius: 15px; font-weight: 900; font-size: 0.9rem; text-transform: uppercase; }

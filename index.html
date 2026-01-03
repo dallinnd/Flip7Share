@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#008080">
     <title>Flip 7 Share Pro</title>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="celebration-overlay" class="overlay" style="display:none;" onclick="window.closeCelebration()">
-        <div class="celebration-content">
+        <div class="celebration-card">
             <div class="emoji-bounce">🃏</div>
             <h1>FLIP 7!</h1>
-            <h2 class="bonus-text">+15 POINTS</h2>
+            <div class="bonus-badge">+15 POINTS</div>
             <p>Tap to continue</p>
         </div>
     </div>
@@ -47,19 +46,20 @@
         <div class="top-nav">
             <button class="nav-btn-themed" onclick="window.showScreen('home-screen')">HOME</button>
             <div id="roomCodeDisplay" class="nav-code">CODE: ------</div>
-            <div style="width:70px;"></div> </div>
+            <div style="width:70px;"></div>
+        </div>
         <div class="main-scroll-area">
             <div id="calc-view">
                 <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS!</div>
                 <div class="card-grid" id="cardGrid"></div> 
                 <button class="big-btn bust-btn" id="bust-toggle-btn" onclick="window.triggerBust()">BUST</button>
                 <div class="mod-grid">
-                    <button id="btn-m2" class="touch-target" onclick="window.toggleMod('m2', 2)">×2</button>
-                    <button id="btn-p2" class="touch-target" onclick="window.toggleMod('p2', 2)">+2</button>
-                    <button id="btn-p4" class="touch-target" onclick="window.toggleMod('p4', 4)">+4</button>
-                    <button id="btn-p6" class="touch-target" onclick="window.toggleMod('p6', 6)">+6</button>
-                    <button id="btn-p8" class="touch-target" onclick="window.toggleMod('p8', 8)">+8</button>
-                    <button id="btn-p10" class="touch-target" onclick="window.toggleMod('p10', 10)">+10</button>
+                    <button id="btn-m2" onclick="window.toggleMod('m2', 2)">×2</button>
+                    <button id="btn-p2" onclick="window.toggleMod('p2', 2)">+2</button>
+                    <button id="btn-p4" onclick="window.toggleMod('p4', 4)">+4</button>
+                    <button id="btn-p6" onclick="window.toggleMod('p6', 6)">+6</button>
+                    <button id="btn-p8" onclick="window.toggleMod('p8', 8)">+8</button>
+                    <button id="btn-p10" onclick="window.toggleMod('p10', 10)">+10</button>
                 </div>
                 <div class="section-spacer"></div>
                 <div class="totals-container">
@@ -70,11 +70,12 @@
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
             </div>
             <div id="waiting-view" style="display:none;">
-                <h2>Leaderboard</h2>
+                <h2 id="waiting-header">Leaderboard</h2>
                 <div id="leaderboard"></div>
                 <div class="section-spacer"></div> 
                 <button id="editRoundBtn" class="big-btn edit-btn" onclick="window.editCurrentRound()">EDIT MY ROUND</button>
                 <button id="nextRoundBtn" class="big-btn next-btn" style="display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
+                <button id="finishGameBtn" class="big-btn submit-btn" style="display:none;" onclick="window.finishGame()">FINISH GAME</button>
             </div>
         </div>
     </div>

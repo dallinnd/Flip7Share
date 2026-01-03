@@ -43,10 +43,8 @@ function updateUI() {
     document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
     document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
     
-    // Broadcast live score to others
     syncLiveScore(roundScore);
 
-    // Grid highlights
     const grid = document.getElementById('cardGrid');
     if(grid) {
         for(let i=0; i<=12; i++) {
@@ -68,7 +66,6 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
-    // Calculate Grand Total (completed rounds only)
     const history = me.history || [0];
     currentGrandTotal = history.reduce((acc, entry, idx) => {
         if (idx > 0 && idx < data.roundNum) return acc + (typeof entry === 'object' ? entry.score : entry);
@@ -86,7 +83,6 @@ function syncApp(snap) {
         document.getElementById('calc-view').style.display = me.submitted ? 'none' : 'block';
         document.getElementById('waiting-view').style.display = me.submitted ? 'block' : 'none';
         
-        // LEADERBOARD: Sum history + current live score
         const sorted = playersArr.map(p => {
             const grand = (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0);
             const live = p.submitted ? 0 : (p.liveScore || 0);
@@ -103,7 +99,32 @@ function syncApp(snap) {
     }
 }
 
-// --- Actions ---
+// --- UPDATED EDIT SCORE LOGIC ---
+window.editScore = async () => {
+    if (!gameCode || !myName) return;
+    
+    const gameRef = ref(db, `games/${gameCode}`);
+    const snap = await get(gameRef);
+    const data = snap.val();
+    const roundNum = data.roundNum;
+    const me = data.players[myName];
+
+    // Restore the specific round data from history before showing the screen
+    if (me.history && me.history[roundNum]) {
+        const prev = me.history[roundNum];
+        usedCards = [...(prev.usedCards || [])];
+        bonuses = [...(prev.bonuses || [])];
+        mult = prev.mult || 1;
+        busted = prev.busted || false;
+    }
+
+    // Tell Firebase we are no longer submitted
+    await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
+    
+    // Refresh the local calculator UI with the restored cards
+    updateUI();
+};
+
 window.submitRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const rNum = snap.val().roundNum;
@@ -117,7 +138,12 @@ window.submitRound = async () => {
     usedCards = []; bonuses = []; mult = 1; busted = false; updateUI();
 };
 
-window.editScore = () => update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
+window.readyForNextRound = async () => {
+    const snap = await get(ref(db, `games/${gameCode}`));
+    const up = { [`games/${gameCode}/roundNum`]: snap.val().roundNum + 1 };
+    for (let p in snap.val().players) up[`games/${gameCode}/players/${p}/submitted`] = false;
+    await update(ref(db), up);
+};
 
 window.adjustCount = (v) => {
     targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + v));
@@ -175,16 +201,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if(gameCode) document.getElementById('resume-btn').style.display = 'block';
 
     const grid = document.getElementById('cardGrid');
-    for(let i=0; i<=12; i++){
-        let btn = document.createElement('button'); btn.innerText = i;
-        btn.onclick = () => { 
-            if (busted) { busted = false; usedCards = [i]; } 
-            else {
-                if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
-                else if(usedCards.length < 7) usedCards.push(i);
-            }
-            updateUI(); 
-        };
-        grid.appendChild(btn);
+    if(grid) {
+        grid.innerHTML = "";
+        for(let i=0; i<=12; i++){
+            let btn = document.createElement('button'); btn.innerText = i;
+            btn.onclick = () => { 
+                if (busted) { busted = false; usedCards = [i]; } 
+                else {
+                    if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
+                    else if(usedCards.length < 7) usedCards.push(i);
+                }
+                updateUI(); 
+            };
+            grid.appendChild(btn);
+        }
     }
 });

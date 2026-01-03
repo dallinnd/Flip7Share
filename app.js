@@ -18,7 +18,6 @@ let gameCode = localStorage.getItem('f7_code'), myName = localStorage.getItem('f
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-// FIX: Counter logic with proper range and display update
 window.adjustCount = (v) => {
     let newVal = targetPlayerCount + v;
     if (newVal >= 1 && newVal <= 20) {
@@ -54,9 +53,7 @@ window.showScreen = (id) => {
 
 window.triggerBust = () => {
     busted = !busted;
-    if(busted) { 
-        usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; 
-    }
+    if(busted) { usedCards = []; bonuses = []; mult = 1; hasCelebrated = false; }
     updateUI();
 };
 
@@ -85,7 +82,6 @@ function updateUI() {
     let totalB = bonuses.reduce((a, b) => a + b, 0);
     const hasF7 = (usedCards.length === 7);
     
-    // BUG FIX: Celebration Popup Trigger
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
         hasCelebrated = true;
@@ -103,7 +99,6 @@ function updateUI() {
     const banner = document.getElementById('flip7-banner');
     if (banner) banner.style.display = (hasF7 && !busted) ? 'block' : 'none';
 
-    // Update Grid highlights
     const grid = document.getElementById('cardGrid');
     if(grid) {
         for(let i=0; i<=12; i++) {
@@ -124,7 +119,6 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
-    // BUG FIX: Calculate grand total up to previous round
     const history = me.history || [0];
     currentGrandTotal = history.reduce((acc, entry, idx) => {
         if (idx > 0 && idx < data.roundNum) {
@@ -156,21 +150,6 @@ function syncApp(snap) {
                 <span>${p.total} ${p.total >= 200 ? '🔥' : 'pts'}</span>
             </div>`).join("");
         
-        // Logs UI logic
-        let hHTML = "";
-        for (let r = data.roundNum; r >= 1; r--) {
-            let rows = playersArr.map(p => {
-                let sObj = p.history && p.history[r];
-                let sVal = sObj ? (typeof sObj === 'object' ? sObj.score : sObj) : 0;
-                return `<div class="history-row"><span>${p.name}</span><b>${sVal}</b></div>`;
-            }).join("");
-            hHTML += `
-                <div class="history-block" onclick="window.revertToRound(${r})">
-                    <span class="round-label">ROUND ${r} ${data.host === myName ? '↩️' : ''}</span>
-                    ${rows}
-                </div>`;
-        }
-        document.getElementById('history-log-container').innerHTML = hHTML;
         document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
     }
     updateUI();
@@ -194,26 +173,6 @@ window.readyForNextRound = async () => {
     await update(ref(db), up);
 };
 
-window.revertToRound = async (r) => {
-    const snap = await get(ref(db, `games/${gameCode}`));
-    const data = snap.val();
-    if (data.host === myName && confirm(`Rewind to Round ${r}?`)) {
-        const up = { [`games/${gameCode}/roundNum`]: r };
-        for (let p in data.players) {
-            up[`games/${gameCode}/players/${p}/history`] = (data.players[p].history || [0]).slice(0, r + 1);
-            up[`games/${gameCode}/players/${p}/submitted`] = false;
-        }
-        await update(ref(db), up);
-        const saved = data.players[myName].history[r];
-        if (saved && typeof saved === 'object') {
-            usedCards = saved.usedCards || []; bonuses = saved.bonuses || [];
-            mult = saved.mult || 1; busted = saved.busted || false;
-        } else { usedCards = []; bonuses = []; mult = 1; busted = false; }
-        window.showScreen('game-screen');
-        updateUI();
-    }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) {
@@ -226,11 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let i=0; i<=12; i++){
             let btn = document.createElement('button'); btn.innerText = i;
             btn.onclick = () => { 
-                // BUG FIX: Selection un-busts the user
-                if (busted) {
-                    busted = false;
-                    usedCards = [i];
-                } else {
+                if (busted) { busted = false; usedCards = [i]; } 
+                else {
                     if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
                     else if(usedCards.length < 7) usedCards.push(i);
                 }
@@ -239,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.appendChild(btn);
         }
     }
-    // FIX: Initialize the counter display correctly
     const countDisp = document.getElementById('playerCountDisplay');
     if(countDisp) countDisp.innerText = targetPlayerCount;
 });

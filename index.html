@@ -28,9 +28,9 @@
         <div class="host-card">
             <label>NEW GAME SETUP</label>
             <div class="counter-row">
-                <button class="counter-btn" onclick="window.adjustCount(-1)">−</button>
+                <button class="counter-sq-btn" onclick="window.adjustCount(-1)">−</button>
                 <div id="playerCountDisplay" class="count-display">4</div>
-                <button class="counter-btn" onclick="window.adjustCount(1)">+</button>
+                <button class="counter-sq-btn" onclick="window.adjustCount(1)">+</button>
             </div>
             <button class="big-btn host-btn" onclick="window.hostGameFromUI()">HOST NEW GAME</button>
         </div>
@@ -38,7 +38,7 @@
             <button class="big-btn join-btn" onclick="window.openJoinPopup()">JOIN EXISTING</button>
             <div id="resume-container" class="resume-wrapper" style="display:none;">
                 <button id="resume-btn" class="big-btn resume-btn" onclick="window.resumeGame()">RESUME GAME</button>
-                <button class="delete-btn" onclick="window.clearSession()" aria-label="Delete saved game">✕</button>
+                <button class="delete-btn" onclick="window.clearSession()">✕</button>
             </div>
         </div>
     </div>
@@ -47,23 +47,22 @@
         <div class="top-nav">
             <button class="nav-btn-themed" onclick="window.showScreen('home-screen')">HOME</button>
             <div id="roomCodeDisplay" class="nav-code">CODE: ------</div>
-            <button class="nav-btn-themed" onclick="window.showScreen('history-screen')">LOGS</button>
-        </div>
+            <div style="width:70px;"></div> </div>
         <div class="main-scroll-area">
             <div id="calc-view">
                 <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS!</div>
                 <div class="card-grid" id="cardGrid"></div> 
                 <button class="big-btn bust-btn" id="bust-toggle-btn" onclick="window.triggerBust()">BUST</button>
                 <div class="mod-grid">
-                    <button id="btn-m2" onclick="window.toggleMod('m2', 2)">×2</button>
-                    <button id="btn-p2" onclick="window.toggleMod('p2', 2)">+2</button>
-                    <button id="btn-p4" onclick="window.toggleMod('p4', 4)">+4</button>
-                    <button id="btn-p6" onclick="window.toggleMod('p6', 6)">+6</button>
-                    <button id="btn-p8" onclick="window.toggleMod('p8', 8)">+8</button>
-                    <button id="btn-p10" onclick="window.toggleMod('p10', 10)">+10</button>
+                    <button id="btn-m2" class="touch-target" onclick="window.toggleMod('m2', 2)">×2</button>
+                    <button id="btn-p2" class="touch-target" onclick="window.toggleMod('p2', 2)">+2</button>
+                    <button id="btn-p4" class="touch-target" onclick="window.toggleMod('p4', 4)">+4</button>
+                    <button id="btn-p6" class="touch-target" onclick="window.toggleMod('p6', 6)">+6</button>
+                    <button id="btn-p8" class="touch-target" onclick="window.toggleMod('p8', 8)">+8</button>
+                    <button id="btn-p10" class="touch-target" onclick="window.toggleMod('p10', 10)">+10</button>
                 </div>
                 <div class="section-spacer"></div>
-                <div class="totals-row">
+                <div class="totals-container">
                     <div class="total-box"><small>ROUND</small><div id="round-display">0</div></div>
                     <div class="total-box grand"><small>GRAND</small><div id="grand-display">0</div></div>
                 </div>
@@ -84,17 +83,7 @@
         <h2 id="roomDisplayLobby">Game: ------</h2>
         <div id="lobby-status" class="lobby-count">Joined: 0 / 0</div>
         <div id="player-list" class="player-list"></div>
-        <p class="pulse">Waiting for players...</p>
-        <button class="nav-btn-themed" onclick="window.leaveGame()">Leave Lobby</button>
-    </div>
-
-    <div id="history-screen" class="screen" style="display:none;">
-        <div class="top-nav">
-            <button class="nav-btn-themed" onclick="window.showScreen('game-screen')">← BACK</button>
-            <div class="nav-code">ROUND LOGS</div>
-            <div style="width:70px;"></div>
-        </div>
-        <div id="history-log-container" class="history-list"></div>
+        <button class="big-btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="window.leaveGame()">LEAVE LOBBY</button>
     </div>
 
     <script type="module" src="app.js"></script>

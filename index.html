@@ -20,7 +20,7 @@
         <h1>Flip 7 Share</h1>
         <div class="input-group">
             <label>PLAYER NAME</label>
-            <input type="text" id="userNameInput" placeholder="TYPE NAME HERE" class="name-input-field">
+            <input type="text" id="userNameInput" placeholder="TYPE NAME HERE" class="name-input-field" autocomplete="off" autocapitalize="words">
         </div>
         <div class="home-spacer"></div> 
         <div class="host-card">
@@ -34,7 +34,6 @@
         </div>
         <div class="home-footer">
             <button class="big-btn join-btn" onclick="window.openJoinPopup()">JOIN EXISTING</button>
-            
             <div id="game-manager" style="display:none; width:100%; margin-top:20px;">
                 <label class="manager-label">YOUR ACTIVE GAMES</label>
                 <div id="game-list-container"></div>
@@ -51,7 +50,7 @@
         </div>
         <div class="main-scroll-area">
             <div id="calc-view">
-                <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS!</div>
+                <div id="flip7-banner" class="banner" style="display:none;">FLIP 7 BONUS! (+15)</div>
                 <div class="card-grid" id="cardGrid"></div> 
                 <button class="big-btn bust-btn" id="bust-toggle-btn" onclick="window.triggerBust()">BUST</button>
                 <div class="mod-grid">
@@ -64,8 +63,14 @@
                 </div>
                 <div class="section-spacer"></div>
                 <div class="totals-row">
-                    <div class="total-box"><small>ROUND</small><div id="round-display">0</div></div>
-                    <div class="total-box grand"><small>GRAND</small><div id="grand-display">0</div></div>
+                    <div class="total-box round-container">
+                        <small>ROUND</small>
+                        <div id="round-display">0</div>
+                    </div>
+                    <div class="total-box grand-container">
+                        <small>GRAND</small>
+                        <div id="grand-display">0</div>
+                    </div>
                 </div>
                 <div class="section-spacer"></div>
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>

@@ -1,58 +1,163 @@
-:root { --teal: #008080; --green: #2e8b57; --orange: #ff8c00; --gold: #ffd700; }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root { 
+    --teal: #008080; 
+    --green: #2e8b57; 
+    --orange: #ff8c00; 
+    --gold: #ffd700; 
+    --danger: #ff4444;
+}
+
+* { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+}
 
 body { 
-    margin: 0; background: linear-gradient(135deg, var(--teal), var(--green)); 
-    color: white; font-family: sans-serif; min-height: 100dvh; 
-    display: flex; justify-content: center; overflow-x: hidden; 
+    margin: 0; 
+    background: linear-gradient(135deg, var(--teal), var(--green)); 
+    color: white; 
+    font-family: -apple-system, system-ui, sans-serif; 
+    min-height: 100dvh; 
+    display: flex; 
+    justify-content: center; 
+    overflow-x: hidden; 
 }
 
 .screen { 
-    width: 95%; max-width: 450px; margin: 15px auto; padding: 25px; 
-    background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    border-radius: 30px; display: flex; flex-direction: column; gap: 15px; 
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3); user-select: none;
+    width: 92%; 
+    max-width: 450px; 
+    margin: 20px auto; 
+    padding: 30px 20px; 
+    background: rgba(255,255,255,0.1); 
+    backdrop-filter: blur(15px); 
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 30px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; /* Cushioning between containers */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
+    user-select: none;
 }
 
-/* OVERLAY & CELEBRATION */
-.overlay { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); 
-    z-index: 10000; display: flex; align-items: center; justify-content: center; 
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
+/* --- BUTTONS & INTERACTIVE --- */
+button {
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.2s ease;
+    touch-action: manipulation;
+    border: none;
 }
-.celebration-card { 
-    background: white; color: var(--teal); width: 85%; max-width: 320px; padding: 40px 20px; 
-    border-radius: 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.5); 
-    animation: cardPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+
+button:active { transform: scale(0.96); }
+
+.big-btn { 
+    width: calc(100% - 8px); 
+    min-height: 65px; 
+    margin: 8px 4px; 
+    border-radius: 20px; 
+    font-weight: 900; 
+    font-size: 1.2rem; 
+    text-transform: uppercase; 
 }
-@keyframes cardPop { 0% { transform: scale(0.8) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
 
-/* BUTTONS */
-.big-btn { width: 100%; min-height: 70px; border-radius: 20px; border: none; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; cursor: pointer; }
-.counter-sq-btn { width: 65px; height: 65px; border-radius: 18px; border: none; font-size: 2rem; background: white; color: var(--teal); font-weight: 900; }
-.counter-row { display: flex; justify-content: center; align-items: center; gap: 35px; margin-bottom: 25px; }
-.count-display { font-size: 4rem; font-weight: 900; min-width: 80px; text-align: center; }
+/* Rounded Square Counter Buttons */
+.counter-sq-btn { 
+    width: 65px; 
+    height: 65px; 
+    border-radius: 15px; /* The rounded square look */
+    font-size: 2rem; 
+    background: white; 
+    color: var(--teal); 
+    font-weight: 900; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-/* TOTALS SIDE-BY-SIDE */
-.totals-container { display: flex; gap: 12px; width: 100%; }
-.total-box { flex: 1; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); padding: 15px; text-align: center; background: rgba(0,0,0,0.15); }
+.counter-row { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 30px; 
+    margin: 15px 0; 
+}
+
+.count-display { font-size: 3.5rem; font-weight: 900; min-width: 70px; text-align: center; }
+
+/* --- TOTALS SIDE-BY-SIDE --- */
+.totals-container { 
+    display: flex; 
+    gap: 15px; 
+    width: 100%; 
+    margin: 10px 0;
+}
+
+.total-box { 
+    flex: 1; 
+    border-radius: 20px; 
+    border: 1px solid rgba(255,255,255,0.2); 
+    padding: 15px 5px; 
+    text-align: center; 
+    background: rgba(0,0,0,0.15); 
+}
+
 .total-box.grand { background: white; color: var(--teal); }
-.total-box small { font-weight: 900; letter-spacing: 1px; opacity: 0.8; font-size: 0.7rem; }
+.total-box small { font-weight: 900; letter-spacing: 1px; opacity: 0.7; font-size: 0.65rem; }
 .total-box div { font-size: 2.2rem; font-weight: 900; }
 
-/* WINNER LOGIC */
-.winner-highlight { border: 4px solid var(--gold) !important; background: rgba(255, 215, 0, 0.2) !important; transform: scale(1.02); box-shadow: 0 0 20px var(--gold); }
-.winner-highlight b::before { content: "👑 "; }
+/* --- GRIDS --- */
+.card-grid, .mod-grid { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; 
+    padding: 5px 0;
+}
 
-/* GRID & MODS */
-.card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.card-grid button { min-height: 60px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 15px; font-weight: bold; font-size: 1.4rem; }
-.mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.mod-grid button { min-height: 60px; background: rgba(255,255,255,0.1); border: 1px solid white; color: white; border-radius: 15px; font-weight: bold; }
-.mod-btn-active { background: var(--orange) !important; }
-.bust-btn { border: 3px solid white !important; margin: 10px 0; }
-.bust-active { background: #ff4444 !important; }
-.banner { background: var(--gold); color: black; padding: 12px; border-radius: 12px; font-weight: 900; margin-bottom: 15px; text-align: center; }
+.card-grid button, .mod-grid button { 
+    min-height: 60px; 
+    background: rgba(255,255,255,0.2); 
+    border: 1px solid white; 
+    color: white; 
+    border-radius: 15px; 
+    font-weight: bold; 
+}
+
+.mod-btn-active { background: var(--orange) !important; border-color: var(--orange) !important; }
+.bust-btn { background: var(--teal); border: 2px solid white; }
+.bust-active { background: var(--danger) !important; }
+
+/* --- INPUTS & LABELS --- */
+label { font-size: 0.8rem; font-weight: 900; opacity: 0.8; margin-left: 10px; }
+.name-input-field { 
+    width: 100%; 
+    padding: 18px; 
+    border-radius: 20px; 
+    border: none; 
+    font-size: 1.4rem; 
+    font-weight: 900; 
+    text-align: center; 
+    color: var(--teal);
+    margin-top: 5px;
+}
+
+.home-footer { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
 .resume-wrapper { display: flex; gap: 10px; width: 100%; }
-.delete-btn { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid white; border-radius: 20px; color: white; font-size: 1.5rem; }
-.name-input-field { width: 100%; padding: 20px; border-radius: 20px; border: none; font-size: 1.8rem; font-weight: 900; text-align: center; color: var(--teal); }
+.delete-btn { 
+    width: 65px; height: 65px; margin-top: 8px;
+    background: rgba(255,255,255,0.1); 
+    border: 1px solid white; 
+    border-radius: 20px; 
+    color: white; 
+    font-size: 1.5rem; 
+}
+
+.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
+.nav-btn-themed { background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 12px; color: white; font-weight: bold; }
+
+/* Leaderboard Cushioning */
+.p-row { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 15px; 
+    background: rgba(255,255,255,0.1); 
+    border-radius: 15px; 
+    margin-bottom: 10px; 
+}

@@ -101,6 +101,93 @@ window.openJoinPopup = () => {
     else if(!myName) alert("Please enter your name first!");
 };
 
+// --- GAME STATE ---
+window.gameState = {
+    playerCount: 4,
+    currentRoundScore: 0,
+    grandTotal: 0,
+    selectedCards: new Set(),
+    activeMods: {},
+    isBusted: false
+};
+
+// --- PWA INSTALLATION HOOK ---
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log("Flip 7 is ready to install!");
+});
+
+// --- UI & GAME LOGIC ---
+
+// Host Count Adjustment
+window.adjustCount = (amt) => {
+    let count = window.gameState.playerCount + amt;
+    if (count >= 1 && count <= 12) {
+        window.gameState.playerCount = count;
+        document.getElementById('playerCountDisplay').innerText = count;
+    }
+};
+
+// Card Grid Interaction
+window.toggleCard = (val, btn) => {
+    if (window.gameState.selectedCards.has(val)) {
+        window.gameState.selectedCards.delete(val);
+        btn.style.background = "rgba(255, 255, 255, 0.15)";
+    } else {
+        window.gameState.selectedCards.add(val);
+        btn.style.background = "var(--teal)";
+    }
+    window.calculateScore();
+};
+
+// Scoring Calculation
+window.calculateScore = () => {
+    if (window.gameState.isBusted) return;
+    
+    let base = Array.from(window.gameState.selectedCards).reduce((a, b) => a + b, 0);
+    
+    // Flip 7 Rule: Exactly 7 cards selected = +15 bonus
+    const banner = document.getElementById('flip7-banner');
+    if (window.gameState.selectedCards.size === 7) {
+        base += 15;
+        banner.style.display = 'block';
+    } else {
+        banner.style.display = 'none';
+    }
+
+    // Apply Mods (Multipliers then Additions)
+    if (window.gameState.activeMods['m2']) base *= 2;
+    Object.keys(window.gameState.activeMods).forEach(key => {
+        if (key !== 'm2') base += window.gameState.activeMods[key];
+    });
+
+    window.gameState.currentRoundScore = base;
+    document.getElementById('round-display').innerText = base;
+};
+
+// Initialize Card Grid (0-12)
+const grid = document.getElementById('cardGrid');
+if (grid) {
+    for (let i = 0; i <= 12; i++) {
+        const b = document.createElement('button');
+        b.innerText = i;
+        b.onclick = () => window.toggleCard(i, b);
+        grid.appendChild(b);
+    }
+}
+
+// Navigation Logic
+window.showScreen = (id) => {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'flex';
+};
+
+window.hostGameFromUI = () => window.showScreen('game-screen');
+
+
+
 // --- Scoring Logic ---
 function calculateCurrentScore() {
     if (busted) return 0;

@@ -34,7 +34,12 @@
         </div>
         <div class="home-footer">
             <button class="big-btn join-btn" onclick="window.openJoinPopup()">JOIN EXISTING</button>
-            <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="window.resumeGame()">RESUME</button>
+            
+            <div id="game-manager" style="display:none; width:100%; margin-top:20px;">
+                <label class="manager-label">YOUR ACTIVE GAMES</label>
+                <div id="game-list-container"></div>
+                <button class="delete-all-btn" onclick="window.deleteAllGames()">DELETE ALL GAMES</button>
+            </div>
         </div>
     </div>
 
@@ -66,14 +71,13 @@
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
             </div>
             <div id="waiting-view" style="display:none;">
-                <h2>Leaderboard</h2>
-                <button class="nav-btn-themed" onclick="window.editScore()">EDIT SCORE</button>
+                <div class="leaderboard-header">
+                    <h2>Leaderboard</h2>
+                    <button class="nav-btn-themed" onclick="window.editScore()">EDIT SCORE</button>
                 </div>
                 <div id="leaderboard"></div>
                 <div class="section-spacer"></div> 
-                    <button id="nextRoundBtn" class="big-btn next-btn" style="display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
-                </div>
-               
+                <button id="nextRoundBtn" class="big-btn next-btn" style="display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
             </div>
         </div>
     </div>

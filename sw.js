@@ -11,17 +11,13 @@ const ASSETS = [
 
 self.addEventListener('install', e => {
     e.waitUntil(
-        caches.open(CACHE_NAME).then(c => {
-            console.log('Caching all assets');
-            return c.addAll(ASSETS);
-        })
+        caches.open(CACHE_NAME).then(c => c.addAll(ASSETS))
     );
 });
 
+// Necessary for installability
 self.addEventListener('fetch', e => {
     e.respondWith(
-        caches.match(e.request).then(res => {
-            return res || fetch(e.request);
-        })
+        caches.match(e.request).then(res => res || fetch(e.request))
     );
 });

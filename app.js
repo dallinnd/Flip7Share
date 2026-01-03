@@ -52,65 +52,48 @@ window.showScreen = (id) => {
 };
 
 window.triggerBust = () => {
-    vib(50);
+    vib(40);
     busted = !busted;
     if(busted) { usedCards = []; bonuses = []; mult = 1; }
     updateUI();
 };
 
 window.toggleMod = (id, val) => {
-    vib();
+    vib(10);
     if(id === 'm2') mult = (mult === 2) ? 1 : 2;
     else bonuses.includes(val) ? bonuses = bonuses.filter(b=>b!==val) : bonuses.push(val);
     updateUI();
 };
 
-window.resumeGame = () => { if(gameCode) joinGame(gameCode); };
-window.clearSession = () => { if(confirm("Clear session?")) { localStorage.removeItem('f7_code'); location.reload(); }};
-window.closeCelebration = () => { document.getElementById('celebration-overlay').style.display = 'none'; };
-
-window.editCurrentRound = async () => {
-    const snap = await get(ref(db, `games/${gameCode}`));
-    const data = snap.val();
-    const myData = data.players[myName];
-    const saved = myData.history[data.roundNum];
-    if (saved) {
-        usedCards = saved.usedCards || []; bonuses = saved.bonuses || [];
-        mult = saved.mult || 1; busted = saved.busted || false;
-        await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
-        updateUI();
-    }
-};
-
-async function joinGame(code) {
-    const pRef = ref(db, `games/${code}/players/${myName}`);
-    const snap = await get(pRef);
-    if (!snap.exists()) await set(pRef, { name: myName, history: [0], submitted: false });
-    onValue(ref(db, `games/${code}`), syncApp);
-}
-
 function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let totalB = bonuses.reduce((a, b) => a + b, 0);
     const hasF7 = (usedCards.length === 7);
+    
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
         vib([50, 30, 50]);
         hasCelebrated = true;
     }
     if(!hasF7) hasCelebrated = false;
+
     let roundScore = busted ? 0 : (sum * mult) + totalB + (hasF7 ? 15 : 0);
     document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
     document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
     document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
     document.getElementById('flip7-banner').style.display = (hasF7 && !busted) ? 'block' : 'none';
+
     const grid = document.getElementById('cardGrid');
-    for(let i=0; i<=12; i++) {
-        if(grid.children[i]) grid.children[i].style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
+    if(grid) {
+        Array.from(grid.children).forEach((btn, i) => {
+            btn.style.background = usedCards.includes(i) ? "var(--orange)" : "rgba(255,255,255,0.2)";
+        });
     }
+    
     document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
     [2,4,6,8,10].forEach(v => {
-        document.getElementById('btn-p' + v).className = bonuses.includes(v) ? "mod-btn-active" : "";
+        const btn = document.getElementById('btn-p' + v);
+        if(btn) btn.className = bonuses.includes(v) ? "mod-btn-active" : "";
     });
 }
 
@@ -119,11 +102,11 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
-    currentGrandTotal = (me.history || [0]).reduce((acc, entry, idx) => {
+    currentGrandTotal = (me.history || []).reduce((acc, entry, idx) => {
         if (idx > 0 && idx < data.roundNum) return acc + (typeof entry === 'object' ? entry.score : entry);
         return acc;
     }, 0);
-    
+
     if (data.status === "waiting") {
         window.showScreen('lobby-screen');
         document.getElementById('roomDisplayLobby').innerText = "Game: " + gameCode;
@@ -139,7 +122,7 @@ function syncApp(snap) {
         const sorted = playersArr.map(p => ({ 
             ...p, total: (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0) 
         })).sort((a,b)=>b.total-a.total);
-        
+
         const isGameOver = sorted.some(p => p.total >= 200);
         document.getElementById('waiting-header').innerText = isGameOver ? "FINAL RESULTS" : "Leaderboard";
         document.getElementById('leaderboard').innerHTML = sorted.map((p, idx) => `
@@ -175,30 +158,25 @@ window.readyForNextRound = async () => {
     await update(ref(db), up);
 };
 
-window.finishGame = async () => {
-    if(confirm("End game and save results?")) {
-        await update(ref(db, `games/${gameCode}`), { status: "closed" });
-        localStorage.removeItem('f7_code');
-        location.reload();
-    }
-};
+window.resumeGame = () => { if(gameCode) joinGame(gameCode); };
+window.clearSession = () => { if(confirm("Clear session?")) { localStorage.removeItem('f7_code'); location.reload(); }};
+window.closeCelebration = () => { document.getElementById('celebration-overlay').style.display = 'none'; };
 
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) {
         nInput.value = myName;
-        nInput.oninput = () => { myName = nInput.value; localStorage.setItem('f7_name', myName); };
+        nInput.oninput = () => { myName = nInput.value.toUpperCase(); localStorage.setItem('f7_name', myName); };
     }
-    const resContainer = document.getElementById('resume-container');
-    if(gameCode && resContainer) resContainer.style.display = "flex";
+    if(gameCode) document.getElementById('resume-container').style.display = "flex";
     const grid = document.getElementById('cardGrid');
     if (grid) {
         grid.innerHTML = "";
         for(let i=0; i<=12; i++){
             let btn = document.createElement('button'); btn.innerText = i;
             btn.onclick = () => { 
-                vib();
-                if (busted) { busted = false; usedCards = [i]; } 
+                vib(10); 
+                if (busted) { busted = false; usedCards = [i]; }
                 else {
                     if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
                     else if(usedCards.length < 7) usedCards.push(i);
@@ -208,6 +186,4 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.appendChild(btn);
         }
     }
-    const countDisp = document.getElementById('playerCountDisplay');
-    if(countDisp) countDisp.innerText = targetPlayerCount;
 });

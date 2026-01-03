@@ -21,6 +21,15 @@ let activeGames = JSON.parse(localStorage.getItem('f7_game_list')) || [];
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
+// --- Helper: Centralized Scoring ---
+function calculateCurrentScore() {
+    if (busted) return 0;
+    const sum = usedCards.reduce((a, b) => a + b, 0);
+    const totalB = bonuses.reduce((a, b) => a + b, 0);
+    const f7Bonus = (usedCards.length === 7) ? 15 : 0;
+    return (sum * mult) + totalB + f7Bonus;
+}
+
 // --- Helper: Force UI Code Update ---
 function updateCodeUI(code, round = 1) {
     if (!code) return;
@@ -77,17 +86,18 @@ async function syncLiveScore(score) {
 }
 
 function updateUI() {
-    let sum = usedCards.reduce((a, b) => a + b, 0);
-    let totalB = bonuses.reduce((a, b) => a + b, 0);
     const hasF7 = (usedCards.length === 7);
+    const banner = document.getElementById('flip7-banner');
     
+    // Celebration Logic
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
         hasCelebrated = true;
     }
     if(!hasF7) hasCelebrated = false;
+    if(banner) banner.style.display = hasF7 ? 'block' : 'none';
 
-    let roundScore = busted ? 0 : (sum * mult) + totalB + (hasF7 ? 15 : 0);
+    const roundScore = calculateCurrentScore();
     document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
     document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
     
@@ -95,10 +105,9 @@ function updateUI() {
 
     const grid = document.getElementById('cardGrid');
     if(grid) {
-        for(let i=0; i<=12; i++) {
-            const b = grid.children[i];
-            if(b) b.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
-        }
+        Array.from(grid.children).forEach((btn, i) => {
+            btn.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
+        });
     }
     document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
     document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
@@ -116,9 +125,13 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
+    // Calculate Grand Total from history (excluding current round being played)
     const history = me.history || [0];
     currentGrandTotal = history.reduce((acc, entry, idx) => {
-        if (idx > 0 && idx < data.roundNum) return acc + (typeof entry === 'object' ? entry.score : entry);
+        if (idx > 0 && idx < data.roundNum) {
+            const val = (typeof entry === 'object') ? entry.score : entry;
+            return acc + (val || 0);
+        }
         return acc;
     }, 0);
     
@@ -139,7 +152,7 @@ function syncApp(snap) {
         }).sort((a,b) => b.displayTotal - a.displayTotal);
         
         document.getElementById('leaderboard').innerHTML = sorted.map(p => `
-            <div class="p-row ${p.displayTotal >= 200 ? 'threshold-reached' : ''} ${p.isBusted ? 'busted-row' : ''}">
+            <div class="p-row ${p.isBusted ? 'busted-row' : ''}">
                 <b>${p.name} ${p.submitted ? '✅' : '<span class="live-icon">⚡</span>'}</b>
                 <span>${p.isBusted ? 'BUST' : p.displayTotal + ' pts'}</span>
             </div>`).join("");
@@ -151,7 +164,7 @@ function syncApp(snap) {
 window.submitRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const rNum = snap.val().roundNum;
-    const score = busted ? 0 : (usedCards.reduce((a,b)=>a+b, 0) * mult) + bonuses.reduce((a,b)=>a+b, 0) + (usedCards.length === 7 ? 15 : 0);
+    const score = calculateCurrentScore();
     let h = (await get(ref(db, `games/${gameCode}/players/${myName}`))).val().history || [0];
     h[rNum] = { score, usedCards: [...usedCards], bonuses: [...bonuses], mult, busted };
     await update(ref(db, `games/${gameCode}/players/${myName}`), { history: h, submitted: true, liveScore: 0, isBusted: false });

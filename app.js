@@ -117,7 +117,7 @@ function syncApp(snap) {
         window.showScreen('game-screen');
         document.getElementById('roomCodeDisplay').innerText = `CODE: ${gameCode} | R${data.roundNum}`;
         document.getElementById('calc-view').style.display = me.submitted ? 'none' : 'block';
-        document.getElementById('waiting-view').style.display = me.submitted ? 'block' : 'none';
+        document.getElementById('waiting-view').style.display = me.submitted ? 'flex' : 'none';
         
         const sorted = playersArr.map(p => ({ 
             ...p, total: (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0) 
@@ -156,6 +156,21 @@ window.readyForNextRound = async () => {
     const up = { [`games/${gameCode}/roundNum`]: snap.val().roundNum + 1 };
     for (let p in snap.val().players) up[`games/${gameCode}/players/${p}/submitted`] = false;
     await update(ref(db), up);
+};
+
+window.editCurrentRound = async () => {
+    const snap = await get(ref(db, `games/${gameCode}`));
+    const data = snap.val();
+    const myData = data.players[myName];
+    const saved = myData.history[data.roundNum];
+    if (saved) {
+        usedCards = saved.usedCards || [];
+        bonuses = saved.bonuses || [];
+        mult = saved.mult || 1;
+        busted = saved.busted || false;
+        await update(ref(db, `games/${gameCode}/players/${myName}`), { submitted: false });
+        updateUI();
+    }
 };
 
 window.resumeGame = () => { if(gameCode) joinGame(gameCode); };

@@ -67,6 +67,7 @@ window.toggleMod = (id, val) => {
 
 window.resumeGame = () => { if(gameCode) joinGame(gameCode); };
 window.clearSession = () => { if(confirm("Clear session?")) { localStorage.removeItem('f7_code'); location.reload(); }};
+window.closeCelebration = () => { document.getElementById('celebration-overlay').style.display = 'none'; };
 
 window.editCurrentRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
@@ -92,21 +93,17 @@ function updateUI() {
     let sum = usedCards.reduce((a, b) => a + b, 0);
     let totalB = bonuses.reduce((a, b) => a + b, 0);
     const hasF7 = (usedCards.length === 7);
-    
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
         vib([50, 30, 50]);
         hasCelebrated = true;
     }
     if(!hasF7) hasCelebrated = false;
-
     let roundScore = busted ? 0 : (sum * mult) + totalB + (hasF7 ? 15 : 0);
     document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
     document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
-    
     document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
     document.getElementById('flip7-banner').style.display = (hasF7 && !busted) ? 'block' : 'none';
-
     const grid = document.getElementById('cardGrid');
     for(let i=0; i<=12; i++) {
         if(grid.children[i]) grid.children[i].style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
@@ -118,7 +115,7 @@ function updateUI() {
 }
 
 function syncApp(snap) {
-    const data = snap.val(); if(!data) return;
+    const data = snap.val(); if(!data || data.status === "closed") { location.reload(); return; }
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
@@ -143,13 +140,17 @@ function syncApp(snap) {
             ...p, total: (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0) 
         })).sort((a,b)=>b.total-a.total);
         
-        document.getElementById('leaderboard').innerHTML = sorted.map(p => `
-            <div class="p-row ${p.total >= 200 ? 'threshold-reached' : ''}">
+        const isGameOver = sorted.some(p => p.total >= 200);
+        document.getElementById('waiting-header').innerText = isGameOver ? "FINAL RESULTS" : "Leaderboard";
+        document.getElementById('leaderboard').innerHTML = sorted.map((p, idx) => `
+            <div class="p-row ${idx === 0 && isGameOver ? 'winner-highlight' : ''}">
                 <b>${p.name} ${p.submitted ? '✅' : '⏳'}</b>
                 <span>${p.total} pts</span>
             </div>`).join("");
         
-        document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
+        const allSubmitted = playersArr.every(p => p.submitted);
+        document.getElementById('nextRoundBtn').style.display = (data.host === myName && allSubmitted && !isGameOver) ? 'block' : 'none';
+        document.getElementById('finishGameBtn').style.display = (data.host === myName && allSubmitted && isGameOver) ? 'block' : 'none';
     }
     updateUI();
 }
@@ -174,6 +175,14 @@ window.readyForNextRound = async () => {
     await update(ref(db), up);
 };
 
+window.finishGame = async () => {
+    if(confirm("End game and save results?")) {
+        await update(ref(db, `games/${gameCode}`), { status: "closed" });
+        localStorage.removeItem('f7_code');
+        location.reload();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) {
@@ -182,19 +191,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const resContainer = document.getElementById('resume-container');
     if(gameCode && resContainer) resContainer.style.display = "flex";
-
     const grid = document.getElementById('cardGrid');
-    for(let i=0; i<=12; i++){
-        let btn = document.createElement('button'); btn.innerText = i;
-        btn.onclick = () => { 
-            vib();
-            if (busted) { busted = false; usedCards = [i]; } 
-            else {
-                if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
-                else if(usedCards.length < 7) usedCards.push(i);
-            }
-            updateUI(); 
-        };
-        grid.appendChild(btn);
+    if (grid) {
+        grid.innerHTML = "";
+        for(let i=0; i<=12; i++){
+            let btn = document.createElement('button'); btn.innerText = i;
+            btn.onclick = () => { 
+                vib();
+                if (busted) { busted = false; usedCards = [i]; } 
+                else {
+                    if(usedCards.includes(i)) usedCards = usedCards.filter(v=>v!==i); 
+                    else if(usedCards.length < 7) usedCards.push(i);
+                }
+                updateUI(); 
+            };
+            grid.appendChild(btn);
+        }
     }
+    const countDisp = document.getElementById('playerCountDisplay');
+    if(countDisp) countDisp.innerText = targetPlayerCount;
 });

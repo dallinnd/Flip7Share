@@ -34,7 +34,7 @@
         </div>
         <div class="home-footer">
             <button class="big-btn join-btn" onclick="window.openJoinPopup()">JOIN EXISTING</button>
-            <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="window.resumeGame()">RESUME GAME</button>
+            <button id="resume-btn" class="big-btn resume-btn" style="display:none;" onclick="window.resumeGame()">RESUME</button>
         </div>
     </div>
 
@@ -42,7 +42,7 @@
         <div class="top-nav">
             <button class="nav-btn-themed" onclick="window.showScreen('home-screen')">HOME</button>
             <div id="roomCodeDisplay" class="nav-code">CODE: ------</div>
-            <button class="nav-btn-themed" onclick="window.showScreen('history-screen')">LOGS</button>
+            <div style="width:70px;"></div> 
         </div>
         <div class="main-scroll-area">
             <div id="calc-view">
@@ -80,15 +80,6 @@
         <div id="player-list" class="player-list"></div>
         <p class="pulse">Waiting for players...</p>
         <button class="nav-btn-themed" onclick="window.leaveGame()">Leave Lobby</button>
-    </div>
-
-    <div id="history-screen" class="screen" style="display:none;">
-        <div class="top-nav">
-            <button class="nav-btn-themed" onclick="window.showScreen('game-screen')">← BACK</button>
-            <div class="nav-code">ROUND LOGS</div>
-            <div style="width:70px;"></div>
-        </div>
-        <div id="history-log-container" class="history-list"></div>
     </div>
 
     <script type="module" src="app.js"></script>

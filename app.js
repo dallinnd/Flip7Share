@@ -14,14 +14,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// --- State Variables ---
 let myName = localStorage.getItem('f7_name') || "";
 let gameCode = null;
 let activeGames = JSON.parse(localStorage.getItem('f7_game_list')) || [];
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-// --- Helper: Centralized Scoring ---
 function calculateCurrentScore() {
     if (busted) return 0;
     const sum = usedCards.reduce((a, b) => a + b, 0);
@@ -30,11 +28,34 @@ function calculateCurrentScore() {
     return (sum * mult) + totalB + f7Bonus;
 }
 
-// --- GLOBAL EXPORTS (Fixes the Home Page Buttons) ---
+// --- GLOBAL EXPORTS ---
 window.adjustCount = (v) => {
     targetPlayerCount = Math.max(1, Math.min(20, targetPlayerCount + v));
     const display = document.getElementById('playerCountDisplay');
     if (display) display.innerText = targetPlayerCount;
+};
+
+window.showEndPrompt = () => {
+    document.getElementById('end-game-overlay').style.display = 'flex';
+};
+
+window.rematch = async () => {
+    if (!gameCode) return;
+    const snap = await get(ref(db, `games/${gameCode}`));
+    const players = snap.val().players;
+    const updates = {};
+    
+    // Reset rounds and player histories
+    updates[`games/${gameCode}/roundNum`] = 1;
+    updates[`games/${gameCode}/status`] = "active";
+    for (let p in players) {
+        updates[`games/${gameCode}/players/${p}/history`] = [0];
+        updates[`games/${gameCode}/players/${p}/submitted`] = false;
+        updates[`games/${gameCode}/players/${p}/liveScore`] = 0;
+    }
+    
+    await update(ref(db), updates);
+    document.getElementById('end-game-overlay').style.display = 'none';
 };
 
 window.hostGameFromUI = async () => {
@@ -58,10 +79,8 @@ window.hostGameFromUI = async () => {
 window.openJoinPopup = () => {
     let c = prompt("Enter 6-digit code:");
     if(c && myName) joinGame(c);
-    else if(!myName) alert("Please enter your name first!");
 };
 
-// --- Helper Functions ---
 function saveToGameList(code) {
     if (!activeGames.includes(code)) {
         activeGames.push(code);
@@ -92,29 +111,12 @@ function renderGameList() {
         </div>`).join("");
 }
 
-// Ensure game management functions are also global
 window.resumeSpecificGame = (code) => joinGame(code);
-window.deleteGame = (code) => {
-    if (confirm(`Remove Game ${code}?`)) {
-        activeGames = activeGames.filter(c => c !== code);
-        localStorage.setItem('f7_game_list', JSON.stringify(activeGames));
-        renderGameList();
-    }
-};
-window.deleteAllGames = () => {
-    if (confirm("Delete ALL games?")) {
-        activeGames = [];
-        localStorage.setItem('f7_game_list', JSON.stringify([]));
-        renderGameList();
-    }
-};
 
-// --- Sync & UI Logic ---
 function syncApp(snap) {
     const data = snap.val(); if(!data) return;
     gameCode = snap.key;
     
-    // Update labels
     const lobbyDisp = document.getElementById('roomDisplayLobby');
     const gameDisp = document.getElementById('roomCodeDisplay');
     if (lobbyDisp) lobbyDisp.innerText = "Game: " + gameCode;
@@ -142,18 +144,38 @@ function syncApp(snap) {
         document.getElementById('calc-view').style.display = me.submitted ? 'none' : 'block';
         document.getElementById('waiting-view').style.display = me.submitted ? 'block' : 'none';
         
+        let anyoneReachedThreshold = false;
         const sorted = playersArr.map(p => {
             const grand = (p.history || []).reduce((a,b) => a + (typeof b === 'object' ? b.score : b), 0);
             const live = p.submitted ? 0 : (p.liveScore || 0);
-            return { ...p, displayTotal: grand + live };
+            const total = grand + live;
+            if (total >= 200) anyoneReachedThreshold = true;
+            return { ...p, displayTotal: total };
         }).sort((a,b) => b.displayTotal - a.displayTotal);
         
         document.getElementById('leaderboard').innerHTML = sorted.map(p => `
-            <div class="p-row ${p.isBusted ? 'busted-row' : ''}">
+            <div class="p-row ${p.isBusted ? 'busted-row' : ''} ${p.displayTotal >= 200 ? 'threshold-style' : ''}">
                 <b>${p.name} ${p.submitted ? '✅' : '<span class="live-icon">⚡</span>'}</b>
                 <span>${p.isBusted ? 'BUST' : p.displayTotal + ' pts'}</span>
             </div>`).join("");
-        document.getElementById('nextRoundBtn').style.display = (data.host === myName && playersArr.every(p => p.submitted)) ? 'block' : 'none';
+
+        // Control buttons for host
+        const isAllSubmitted = playersArr.every(p => p.submitted);
+        const nextBtn = document.getElementById('nextRoundBtn');
+        const finishBtn = document.getElementById('finishGameBtn');
+
+        if (data.host === myName && isAllSubmitted) {
+            if (anyoneReachedThreshold) {
+                nextBtn.style.display = 'none';
+                finishBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                finishBtn.style.display = 'none';
+            }
+        } else {
+            nextBtn.style.display = 'none';
+            finishBtn.style.display = 'none';
+        }
     }
     updateUI();
 }
@@ -192,7 +214,6 @@ function updateUI() {
     });
 }
 
-// --- Remaining Global Exports ---
 window.submitRound = async () => {
     const snap = await get(ref(db, `games/${gameCode}`));
     const rNum = snap.val().roundNum;
@@ -234,7 +255,6 @@ window.toggleMod = (id, val) => { if(id === 'm2') mult = (mult === 2) ? 1 : 2; e
 window.leaveGame = () => { if(confirm("Leave game?")) location.reload(); };
 window.closeCelebration = () => document.getElementById('celebration-overlay').style.display = 'none';
 
-// --- Initialize UI ---
 document.addEventListener('DOMContentLoaded', () => {
     const nInput = document.getElementById('userNameInput');
     if(nInput) { 

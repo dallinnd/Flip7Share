@@ -21,47 +21,6 @@ let activeGames = JSON.parse(localStorage.getItem('f7_game_list')) || [];
 let usedCards = [], bonuses = [], mult = 1, busted = false, currentGrandTotal = 0;
 let targetPlayerCount = 4, hasCelebrated = false;
 
-// ... [Firebase Config & State Variables remain the same] ...
-
-function updateUI() {
-    const hasF7 = (usedCards.length === 7);
-    const banner = document.getElementById('flip7-banner');
-    
-    if(hasF7 && !hasCelebrated && !busted) {
-        document.getElementById('celebration-overlay').style.display = 'flex';
-        hasCelebrated = true;
-    }
-    if(!hasF7) hasCelebrated = false;
-    if(banner) banner.style.display = hasF7 ? 'block' : 'none';
-
-    const roundScore = calculateCurrentScore();
-    document.getElementById('round-display').innerText = busted ? "BUST" : roundScore;
-    document.getElementById('grand-display').innerText = currentGrandTotal + roundScore;
-    
-    syncLiveScore(roundScore);
-
-    const grid = document.getElementById('cardGrid');
-    if(grid) {
-        Array.from(grid.children).forEach((btn, i) => {
-            // Apply new aesthetic classes for active states
-            if (usedCards.includes(i)) {
-                btn.classList.add('card-active-style');
-            } else {
-                btn.classList.remove('card-active-style');
-            }
-        });
-    }
-    document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
-    document.getElementById('btn-m2').className = (mult === 2) ? "mod-btn-active" : "";
-    [2,4,6,8,10].forEach(v => {
-        const b = document.getElementById('btn-p' + v);
-        if(b) b.className = bonuses.includes(v) ? "mod-btn-active" : "";
-    });
-}
-
-// ... [The rest of your logic remains unchanged] ...
-
-
 // --- Helper: Centralized Scoring ---
 function calculateCurrentScore() {
     if (busted) return 0;
@@ -130,7 +89,6 @@ function updateUI() {
     const hasF7 = (usedCards.length === 7);
     const banner = document.getElementById('flip7-banner');
     
-    // Celebration Logic
     if(hasF7 && !hasCelebrated && !busted) {
         document.getElementById('celebration-overlay').style.display = 'flex';
         hasCelebrated = true;
@@ -147,7 +105,11 @@ function updateUI() {
     const grid = document.getElementById('cardGrid');
     if(grid) {
         Array.from(grid.children).forEach((btn, i) => {
-            btn.style.background = usedCards.includes(i) ? "var(--teal)" : "rgba(255,255,255,0.2)";
+            if (usedCards.includes(i)) {
+                btn.classList.add('card-active-style');
+            } else {
+                btn.classList.remove('card-active-style');
+            }
         });
     }
     document.getElementById('bust-toggle-btn').className = busted ? "big-btn bust-btn bust-active" : "big-btn bust-btn";
@@ -166,7 +128,6 @@ function syncApp(snap) {
     const me = data.players[myName]; if(!me) return;
     const playersArr = Object.values(data.players || {});
 
-    // Calculate Grand Total from history (excluding current round being played)
     const history = me.history || [0];
     currentGrandTotal = history.reduce((acc, entry, idx) => {
         if (idx > 0 && idx < data.roundNum) {

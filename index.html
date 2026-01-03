@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Flip 7 Share Pro</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="theme-color" content="#008080">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="celebration-overlay" class="overlay" style="display:none;" onclick="window.closeCelebration()">
@@ -74,6 +76,7 @@
                     <button id="btn-p10" onclick="window.toggleMod('p10', 10)">+10</button>
                 </div>
                 <div class="section-spacer"></div>
+                
                 <div class="totals-row">
                     <div class="total-box round-container">
                         <small>ROUND</small>
@@ -84,36 +87,23 @@
                         <div id="grand-display">0</div>
                     </div>
                 </div>
+
                 <div class="section-spacer"></div>
                 <button class="big-btn submit-btn" onclick="window.submitRound()">SUBMIT SCORE</button>
-                <div class="section-spacer"></div>
-
-                    <div id="live-rankings" class="live-rankings-area">
-                    <div class="ranking-header">LIVE STANDINGS</div>
-                    <div id="live-rankings-list"></div>
-                </div>
-            </div>
-            <div id="waiting-view" style="display:none;">
-                <div class="leaderboard-header">
-                    <h2>Leaderboard</h2>
-                    <button class="nav-btn-themed" onclick="window.editScore()">EDIT SCORE</button>
-                </div>
-                <div id="leaderboard"></div>
-                <div class="section-spacer"></div> 
-                <button id="nextRoundBtn" class="big-btn next-btn" style="background: var(--gold); color: #443300; display:none;" onclick="window.readyForNextRound()">NEXT ROUND</button>
-                <button id="finishGameBtn" class="big-btn submit-btn" style="display:none;" onclick="window.showEndPrompt()">FINISH GAME</button>
             </div>
         </div>
     </div>
 
-    <div id="lobby-screen" class="screen" style="display:none;">
-        <h2 id="roomDisplayLobby">Game: ------</h2>
-        <div id="lobby-status" class="lobby-count" style="font-size: 1.2rem; font-weight: 900; margin-bottom: 10px;">Joined: 0 / 0</div>
-        <div id="player-list" class="player-list"></div>
-        <p class="pulse">Waiting for players...</p>
-        <button class="nav-btn-themed" onclick="window.leaveGame()">Leave Lobby</button>
-    </div>
-
     <script type="module" src="app.js"></script>
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registered'))
+                    .catch(err => console.log('Service Worker Registration Failed', err));
+            });
+        }
+    </script>
 </body>
 </html>

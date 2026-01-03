@@ -6,10 +6,7 @@
     --danger: #ff4444;
 }
 
-* { 
-    box-sizing: border-box; 
-    -webkit-tap-highlight-color: transparent; 
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body { 
     margin: 0; 
@@ -33,131 +30,72 @@ body {
     border-radius: 30px; 
     display: flex; 
     flex-direction: column; 
-    gap: 20px; /* Cushioning between containers */
+    gap: 20px; 
     box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
     user-select: none;
 }
 
-/* --- BUTTONS & INTERACTIVE --- */
+/* --- BUTTONS & CUSHIONING --- */
 button {
     cursor: pointer;
-    transition: transform 0.1s ease, background 0.2s ease;
+    transition: transform 0.1s ease;
     touch-action: manipulation;
     border: none;
 }
-
 button:active { transform: scale(0.96); }
 
 .big-btn { 
-    width: calc(100% - 8px); 
+    width: 100%; 
     min-height: 65px; 
-    margin: 8px 4px; 
+    margin: 8px 0; /* Vertical space between stacked buttons */
     border-radius: 20px; 
     font-weight: 900; 
     font-size: 1.2rem; 
     text-transform: uppercase; 
 }
 
-/* Rounded Square Counter Buttons */
+/* Rounded Square Buttons */
 .counter-sq-btn { 
-    width: 65px; 
-    height: 65px; 
-    border-radius: 15px; /* The rounded square look */
-    font-size: 2rem; 
-    background: white; 
-    color: var(--teal); 
-    font-weight: 900; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 65px; height: 65px; border-radius: 15px; 
+    font-size: 2rem; background: white; color: var(--teal); font-weight: 900; 
+    display: flex; align-items: center; justify-content: center;
 }
 
-.counter-row { 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    gap: 30px; 
-    margin: 15px 0; 
-}
-
+.counter-row { display: flex; justify-content: center; align-items: center; gap: 30px; margin: 15px 0; }
 .count-display { font-size: 3.5rem; font-weight: 900; min-width: 70px; text-align: center; }
 
-/* --- TOTALS SIDE-BY-SIDE --- */
+/* --- TOTALS SPACING --- */
 .totals-container { 
     display: flex; 
     gap: 15px; 
     width: 100%; 
-    margin: 10px 0;
+    margin: 25px 0; /* Space BEFORE and AFTER the totals box */
 }
-
-.total-box { 
-    flex: 1; 
-    border-radius: 20px; 
-    border: 1px solid rgba(255,255,255,0.2); 
-    padding: 15px 5px; 
-    text-align: center; 
-    background: rgba(0,0,0,0.15); 
-}
-
+.total-box { flex: 1; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); padding: 15px 5px; text-align: center; background: rgba(0,0,0,0.15); }
 .total-box.grand { background: white; color: var(--teal); }
-.total-box small { font-weight: 900; letter-spacing: 1px; opacity: 0.7; font-size: 0.65rem; }
+.total-box small { font-weight: 900; opacity: 0.7; font-size: 0.65rem; }
 .total-box div { font-size: 2.2rem; font-weight: 900; }
 
-/* --- GRIDS --- */
-.card-grid, .mod-grid { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 12px; 
-    padding: 5px 0;
-}
-
-.card-grid button, .mod-grid button { 
-    min-height: 60px; 
-    background: rgba(255,255,255,0.2); 
-    border: 1px solid white; 
-    color: white; 
-    border-radius: 15px; 
-    font-weight: bold; 
-}
+/* --- GRID & MODS --- */
+.card-grid, .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 10px 0; }
+.card-grid button, .mod-grid button { min-height: 60px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 15px; font-weight: bold; }
 
 .mod-btn-active { background: var(--orange) !important; border-color: var(--orange) !important; }
 .bust-btn { background: var(--teal); border: 2px solid white; }
 .bust-active { background: var(--danger) !important; }
 
-/* --- INPUTS & LABELS --- */
-label { font-size: 0.8rem; font-weight: 900; opacity: 0.8; margin-left: 10px; }
-.name-input-field { 
-    width: 100%; 
-    padding: 18px; 
-    border-radius: 20px; 
-    border: none; 
-    font-size: 1.4rem; 
-    font-weight: 900; 
-    text-align: center; 
-    color: var(--teal);
-    margin-top: 5px;
+/* --- VIEW GROUPS (Gap control) --- */
+.home-footer, #waiting-view, #calc-view {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Adds space between all vertical buttons in these views */
 }
 
-.home-footer { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
-.resume-wrapper { display: flex; gap: 10px; width: 100%; }
-.delete-btn { 
-    width: 65px; height: 65px; margin-top: 8px;
-    background: rgba(255,255,255,0.1); 
-    border: 1px solid white; 
-    border-radius: 20px; 
-    color: white; 
-    font-size: 1.5rem; 
-}
+.resume-wrapper { display: flex; gap: 12px; width: 100%; }
+.delete-btn { width: 65px; height: 65px; background: rgba(255,255,255,0.1); border: 1px solid white; border-radius: 20px; color: white; font-size: 1.5rem; }
 
-.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
+.name-input-field { width: 100%; padding: 18px; border-radius: 20px; border: none; font-size: 1.4rem; font-weight: 900; text-align: center; color: var(--teal); }
+.top-nav { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; }
 .nav-btn-themed { background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 12px; color: white; font-weight: bold; }
 
-/* Leaderboard Cushioning */
-.p-row { 
-    display: flex; 
-    justify-content: space-between; 
-    padding: 15px; 
-    background: rgba(255,255,255,0.1); 
-    border-radius: 15px; 
-    margin-bottom: 10px; 
-}
+.p-row { display: flex; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 15px; margin-bottom: 5px; }

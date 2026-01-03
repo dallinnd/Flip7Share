@@ -35,7 +35,6 @@ body {
     user-select: none;
 }
 
-/* --- BUTTONS & CUSHIONING --- */
 button {
     cursor: pointer;
     transition: transform 0.1s ease;
@@ -47,14 +46,13 @@ button:active { transform: scale(0.96); }
 .big-btn { 
     width: 100%; 
     min-height: 65px; 
-    margin: 8px 0; /* Vertical space between stacked buttons */
+    margin: 8px 0; 
     border-radius: 20px; 
     font-weight: 900; 
     font-size: 1.2rem; 
     text-transform: uppercase; 
 }
 
-/* Rounded Square Buttons */
 .counter-sq-btn { 
     width: 65px; height: 65px; border-radius: 15px; 
     font-size: 2rem; background: white; color: var(--teal); font-weight: 900; 
@@ -64,19 +62,17 @@ button:active { transform: scale(0.96); }
 .counter-row { display: flex; justify-content: center; align-items: center; gap: 30px; margin: 15px 0; }
 .count-display { font-size: 3.5rem; font-weight: 900; min-width: 70px; text-align: center; }
 
-/* --- TOTALS SPACING --- */
 .totals-container { 
     display: flex; 
     gap: 15px; 
     width: 100%; 
-    margin: 25px 0; /* Space BEFORE and AFTER the totals box */
+    margin: 25px 0; 
 }
 .total-box { flex: 1; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); padding: 15px 5px; text-align: center; background: rgba(0,0,0,0.15); }
 .total-box.grand { background: white; color: var(--teal); }
 .total-box small { font-weight: 900; opacity: 0.7; font-size: 0.65rem; }
 .total-box div { font-size: 2.2rem; font-weight: 900; }
 
-/* --- GRID & MODS --- */
 .card-grid, .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 10px 0; }
 .card-grid button, .mod-grid button { min-height: 60px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 15px; font-weight: bold; }
 
@@ -84,11 +80,10 @@ button:active { transform: scale(0.96); }
 .bust-btn { background: var(--teal); border: 2px solid white; }
 .bust-active { background: var(--danger) !important; }
 
-/* --- VIEW GROUPS (Gap control) --- */
 .home-footer, #waiting-view, #calc-view {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Adds space between all vertical buttons in these views */
+    gap: 15px; 
 }
 
 .resume-wrapper { display: flex; gap: 12px; width: 100%; }
@@ -99,3 +94,4 @@ button:active { transform: scale(0.96); }
 .nav-btn-themed { background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 12px; color: white; font-weight: bold; }
 
 .p-row { display: flex; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 15px; margin-bottom: 5px; }
+.winner-highlight { border: 2px solid var(--gold); box-shadow: 0 0 15px var(--gold); }
